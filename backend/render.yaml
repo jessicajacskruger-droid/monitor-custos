@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: monitor-custos-api
+    env: node
+    plan: starter
+    buildCommand: npm install && npm run build && npm run prisma:migrate:deploy
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: monitor-custos-db
+          property: connectionString
+      - key: CORS_ORIGIN
+        value: https://monitor-custos.vercel.app
+      - key: MAX_UPLOAD_MB
+        value: 80
+
+databases:
+  - name: monitor-custos-db
+    plan: starter

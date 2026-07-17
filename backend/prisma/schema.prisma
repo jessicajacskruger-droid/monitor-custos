@@ -1,0 +1,175 @@
+// ============================================================================
+// Monitor de Variação de Custos — Schema Prisma
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------
+// Classificação vinda da coluna "Análise da Variação MM %" do Excel.
+// "OK" nunca é persistido — é filtrado ainda na importação.
+// -----------------------------------------------------------------------
+enum Classificacao {
+  REDUCAO_CRITICA
+  AUMENTO_CRITICO
+  REDUCAO_RELEVANTE
+  AUMENTO_RELEVANTE
+  CRITICO_FINANCEIRO
+}
+
+enum StatusImportacao {
+  SUCESSO
+  SUCESSO_COM_AVISOS
+  ERRO
+}
+
+// -----------------------------------------------------------------------
+// Cada linha do Excel (aba "Monitor") que NÃO é "OK" vira um CostVariation.
+// A chave de negócio (natural key) é o que garante que uma nova importação
+// nunca "perca" a justificativa de um registro já existente.
+// -----------------------------------------------------------------------
+model CostVariation {
+  id String @id @default(cuid())
+
+  // Chave de negócio — usada para casar o mesmo registro entre importações
+  naturalKey String @unique
+
+  // Identificação do material / documento
+  material             String
+  descricaoMaterial    String
+  tipoMaterial         String?
+  anoDM                Int
+  mes                  Int
+  dataLancamento       DateTime
+  centro               String
+  categoriaContabil    String?
+  docCompra            String?
+  item                 String?
+  referencia           String?
+  docRef               String?
+
+  // Fornecedor
+  fornecedor      String
+  contaFornecedor String?
+  chaveDoPais     String?
+  taxaCambio      Float?
+
+  // Quantidades e valores
+  qtdEntrada        Float
+  unidadeMedida     String?
+  necessarioConv    Boolean @default(false)
+  montanteMI        Float
+  unitEntrada       Float
+  medioMovel        Float
+
+  // Variação (núcleo da regra de negócio)
+  variacaoMMValor      Float
+  variacaoMMPercentual Float
+  impactoMM            Float // campo oficial de impacto financeiro (usado em todos os rankings)
+  impactoMMAbs         Float // |impactoMM| — usado para ordenar por "maior impacto" independente do sinal
+  variacaoMMPercentualAbs Float // |variacaoMMPercentual| — usado para ordenar por "maior variação"
+  classificacao        Classificacao
+  magnitude            Float?
+  mediaDinamica        String?
+  desvioEntradasReal   Float?
+  obs                  String?
+
+  // Metadados de controle
+  importId String
+  import   ImportLog @relation(fields: [importId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  justification Justification?
+
+  @@index([classificacao])
+  @@index([material])
+  @@index([fornecedor])
+  @@index([anoDM, mes])
+  @@index([impactoMM])
+  @@index([variacaoMMPercentual])
+  @@index([impactoMMAbs])
+  @@index([variacaoMMPercentualAbs])
+}
+
+// -----------------------------------------------------------------------
+// Justificativa — o único dado editável do sistema.
+// Fica em tabela separada e sobrevive a reimportações porque é vinculada
+// pela FK da CostVariation atual (casada por naturalKey no import).
+// -----------------------------------------------------------------------
+model Justification {
+  id String @id @default(cuid())
+
+  costVariationId String        @unique
+  costVariation   CostVariation @relation(fields: [costVariationId], references: [id])
+
+  justificationTypeId String?
+  justificationType    JustificationType? @relation(fields: [justificationTypeId], references: [id])
+
+  textoLivre String?
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  autor        String? // texto livre, já que o sistema não tem login
+
+  history JustificationHistory[]
+}
+
+// Histórico de todas as alterações de justificativa (auditoria + "histórico por material")
+model JustificationHistory {
+  id String @id @default(cuid())
+
+  justificationId String
+  justification   Justification @relation(fields: [justificationId], references: [id])
+
+  material   String // guardado desnormalizado para facilitar consulta por material
+  tipoAntigo String?
+  tipoNovo   String?
+  textoAntigo String?
+  textoNovo   String?
+  autor       String?
+
+  alteradoEm DateTime @default(now())
+
+  @@index([material])
+}
+
+// -----------------------------------------------------------------------
+// Tipos de justificativa — pré-cadastrados, mas totalmente editáveis
+// pelo usuário na tela de administração de justificativas.
+// -----------------------------------------------------------------------
+model JustificationType {
+  id     String  @id @default(cuid())
+  nome   String  @unique
+  ativo  Boolean @default(true)
+  ordem  Int     @default(0)
+
+  criadoEm DateTime @default(now())
+
+  justifications Justification[]
+}
+
+// -----------------------------------------------------------------------
+// Registro de cada importação do Excel.
+// -----------------------------------------------------------------------
+model ImportLog {
+  id String @id @default(cuid())
+
+  arquivoOrigem      String
+  dataImportacao     DateTime @default(now())
+  totalLinhasLidas   Int
+  totalComVariacao   Int
+  totalIgnoradasOK   Int
+  status             StatusImportacao
+  mensagem           String?
+  duracaoMs          Int?
+
+  costVariations CostVariation[]
+}
