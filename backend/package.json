@@ -25,17 +25,21 @@
     "pdfkit": "^0.15.0",
     "zod": "^3.23.8"
   },
-  "devDependencies": {
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/multer": "^1.4.11",
-    "@types/node": "^20.14.0",
-    "@types/pdfkit": "^0.13.4",
-    "prisma": "^5.20.0",
-    "tsx": "^4.19.0",
-    "typescript": "5.5.4"
-  },
-  "prisma": {
+"dependencies": {
+  "@prisma/client": "...",
+  "@types/cors": "...",
+  "@types/express": "...",
+  "@types/multer": "...",
+  "@types/node": "...",
+  "@types/pdfkit": "...",
+  "typescript": "...",
+  "tsx": "...",
+  "prisma": "...",
+
+  "cors": "...",
+  "dotenv": "...",
+  ...
+}
     "seed": "tsx prisma/seed.ts"
   }
 }
