@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { Readable } from "stream";
 import { prisma } from "../prisma";
 import { Classificacao, StatusImportacao, Prisma } from "@prisma/client";
 
@@ -95,6 +96,22 @@ export interface ImportResult {
 
 /**
  * Importa a aba "Monitor" de um arquivo .xlsx.
+ *
+ * IMPORTANTE (leitura em streaming):
+ * O arquivo de origem costuma trazer, além da aba "Monitor" (poucas
+ * milhares de linhas), outras abas auxiliares muito grandes (ex.: MBEWH e
+ * Conversão UMB, que juntas já passam de 700 mil linhas) que não são
+ * usadas aqui. O ExcelJS no modo `workbook.xlsx.load()` carrega TODAS as
+ * abas do arquivo em memória de uma vez, o que é suficiente para estourar
+ * a RAM em ambientes com pouca memória (ex.: planos gratuitos/starter do
+ * Render) e derrubar o processo (502 Bad Gateway).
+ *
+ * Por isso usamos aqui o `ExcelJS.stream.xlsx.WorkbookReader`, que lê o
+ * arquivo linha a linha, aba a aba, sem nunca montar o workbook inteiro
+ * em memória. As abas que não são "Monitor" são drenadas (percorridas
+ * sem serem processadas) só para o parser conseguir avançar até a aba
+ * correta, sem reter esses dados.
+ *
  * Regra central: apenas linhas cuja "Análise da Variação MM %" seja
  * diferente de "OK" são persistidas. Justificativas já cadastradas
  * NUNCA são apagadas, pois o upsert é feito pela naturalKey, que mantém
@@ -108,26 +125,127 @@ export async function importMonitorExcel(
   const inicio = Date.now();
   const avisos: string[] = [];
 
-  const workbook = new ExcelJS.Workbook();
-  console.log("Workbook criado");
-  await workbook.xlsx.load(fileBuffer as any);
-  console.log("Workbook carregado");
+  const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(
+    Readable.from(fileBuffer),
+    {}
+  );
 
-  const sheet = workbook.getWorksheet(SHEET_NAME);
-  console.log("Worksheet localizada");
-  if (!sheet) {
+  const colIndexToKey: Record<number, string> = {};
+  let totalLinhasLidas = 0;
+  let totalComVariacao = 0;
+  let totalIgnoradasOK = 0;
+  const rowsToUpsert: Prisma.CostVariationUpsertArgs[] = [];
+  let sheetEncontrada = false;
+
+  console.log("Iniciando leitura em streaming do arquivo");
+
+  for await (const worksheetReader of workbookReader) {
+    if (worksheetReader.name !== SHEET_NAME) {
+      // Drena a aba sem processar/guardar nada, apenas para o parser
+      // conseguir seguir em frente até a próxima aba do arquivo.
+      for await (const _row of worksheetReader) {
+        // no-op intencional
+      }
+      continue;
+    }
+
+    sheetEncontrada = true;
+    console.log(`Aba "${SHEET_NAME}" localizada, processando linhas...`);
+
+    for await (const row of worksheetReader) {
+      if (row.number === 1) {
+        // cabeçalho
+        row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+          const header = cellToString(cell.value);
+          const mapped = COLUMN_MAP[header];
+          if (mapped) colIndexToKey[colNumber] = mapped;
+        });
+        continue;
+      }
+
+      const parsed: ParsedRow = {};
+      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+        const key = colIndexToKey[colNumber];
+        if (key) parsed[key] = cell.value;
+      });
+
+      if (!parsed.material) continue; // linha vazia/lixo
+      totalLinhasLidas++;
+
+      const classificacaoTexto = cellToString(parsed.classificacaoRaw);
+      const classificacao = CLASSIFICACAO_MAP[classificacaoTexto];
+
+      if (!classificacao || classificacao === "OK") {
+        totalIgnoradasOK++;
+        continue;
+      }
+
+      const materialCod = cellToString(parsed.material);
+      const docCompra = cellToString(parsed.docCompra);
+      const item = cellToString(parsed.item);
+      const referencia = cellToString(parsed.referencia);
+      const anoDM = Math.round(cellToNumber(parsed.anoDM));
+      const mes = Math.round(cellToNumber(parsed.mes));
+
+      const naturalKey = buildNaturalKey({
+        material: materialCod,
+        docCompra,
+        item,
+        referencia,
+        anoDM,
+        mes,
+      });
+
+      const data = {
+        naturalKey,
+        material: materialCod,
+        descricaoMaterial: cellToString(parsed.descricaoMaterial),
+        tipoMaterial: cellToString(parsed.tipoMaterial) || null,
+        anoDM,
+        mes,
+        dataLancamento: cellToDate(parsed.dataLancamento),
+        centro: cellToString(parsed.centro),
+        categoriaContabil: cellToString(parsed.categoriaContabil) || null,
+        docCompra: docCompra || null,
+        item: item || null,
+        referencia: referencia || null,
+        docRef: cellToString(parsed.docRef) || null,
+        fornecedor: cellToString(parsed.fornecedor),
+        contaFornecedor: cellToString(parsed.fornecedor) || null,
+        chaveDoPais: cellToString(parsed.chaveDoPais) || null,
+        taxaCambio: cellToNumber(parsed.taxaCambio),
+        qtdEntrada: cellToNumber(parsed.qtdEntrada),
+        unidadeMedida: cellToString(parsed.unidadeMedida) || null,
+        necessarioConv: cellToString(parsed.necessarioConv).toUpperCase() === "SIM",
+        montanteMI: cellToNumber(parsed.montanteMI),
+        unitEntrada: cellToNumber(parsed.unitEntrada),
+        medioMovel: cellToNumber(parsed.medioMovel),
+        variacaoMMValor: cellToNumber(parsed.variacaoMMValor),
+        variacaoMMPercentual: cellToNumber(parsed.variacaoMMPercentual),
+        impactoMM: cellToNumber(parsed.impactoMM),
+        impactoMMAbs: Math.abs(cellToNumber(parsed.impactoMM)),
+        variacaoMMPercentualAbs: Math.abs(cellToNumber(parsed.variacaoMMPercentual)),
+        classificacao,
+        magnitude: cellToNumber(parsed.magnitude),
+        mediaDinamica: cellToString(parsed.mediaDinamica) || null,
+        desvioEntradasReal: cellToNumber(parsed.desvioEntradasReal),
+        obs: cellToString(parsed.obs) || null,
+      };
+
+      rowsToUpsert.push({
+        where: { naturalKey },
+        create: { ...data, import: { connect: { id: "__IMPORT_ID__" } } } as any,
+        update: { ...data },
+      });
+      totalComVariacao++;
+    }
+  }
+
+  if (!sheetEncontrada) {
     throw new Error(
       `A aba "${SHEET_NAME}" não foi encontrada no arquivo. Verifique se o nome da aba não foi alterado.`
     );
   }
-
-  const headerRow = sheet.getRow(1);
-  const colIndexToKey: Record<number, string> = {};
-  headerRow.eachCell((cell, colNumber) => {
-    const header = cellToString(cell.value);
-    const mapped = COLUMN_MAP[header];
-    if (mapped) colIndexToKey[colNumber] = mapped;
-  });
 
   const missingColumns = Object.keys(COLUMN_MAP).filter(
     (h) => !Object.values(colIndexToKey).includes(COLUMN_MAP[h])
@@ -138,90 +256,12 @@ export async function importMonitorExcel(
     );
   }
 
-  let totalLinhasLidas = 0;
-  let totalComVariacao = 0;
-  let totalIgnoradasOK = 0;
-  const rowsToUpsert: Prisma.CostVariationUpsertArgs[] = [];
-  console.log("Começando leitura das linhas");
-
-  sheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-    if (rowNumber === 1) return; // cabeçalho
-
-    const parsed: ParsedRow = {};
-    row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
-      const key = colIndexToKey[colNumber];
-      if (key) parsed[key] = cell.value;
-    });
-
-    if (!parsed.material) return; // linha vazia/lixo
-    totalLinhasLidas++;
-
-    const classificacaoTexto = cellToString(parsed.classificacaoRaw);
-    const classificacao = CLASSIFICACAO_MAP[classificacaoTexto];
-
-    if (!classificacao || classificacao === "OK") {
-      totalIgnoradasOK++;
-      return;
-    }
-
-    const materialCod = cellToString(parsed.material);
-    const docCompra = cellToString(parsed.docCompra);
-    const item = cellToString(parsed.item);
-    const referencia = cellToString(parsed.referencia);
-    const anoDM = Math.round(cellToNumber(parsed.anoDM));
-    const mes = Math.round(cellToNumber(parsed.mes));
-
-    const naturalKey = buildNaturalKey({ material: materialCod, docCompra, item, referencia, anoDM, mes });
-
-    const data = {
-      naturalKey,
-      material: materialCod,
-      descricaoMaterial: cellToString(parsed.descricaoMaterial),
-      tipoMaterial: cellToString(parsed.tipoMaterial) || null,
-      anoDM,
-      mes,
-      dataLancamento: cellToDate(parsed.dataLancamento),
-      centro: cellToString(parsed.centro),
-      categoriaContabil: cellToString(parsed.categoriaContabil) || null,
-      docCompra: docCompra || null,
-      item: item || null,
-      referencia: referencia || null,
-      docRef: cellToString(parsed.docRef) || null,
-      fornecedor: cellToString(parsed.fornecedor),
-      contaFornecedor: cellToString(parsed.fornecedor) || null,
-      chaveDoPais: cellToString(parsed.chaveDoPais) || null,
-      taxaCambio: cellToNumber(parsed.taxaCambio),
-      qtdEntrada: cellToNumber(parsed.qtdEntrada),
-      unidadeMedida: cellToString(parsed.unidadeMedida) || null,
-      necessarioConv: cellToString(parsed.necessarioConv).toUpperCase() === "SIM",
-      montanteMI: cellToNumber(parsed.montanteMI),
-      unitEntrada: cellToNumber(parsed.unitEntrada),
-      medioMovel: cellToNumber(parsed.medioMovel),
-      variacaoMMValor: cellToNumber(parsed.variacaoMMValor),
-      variacaoMMPercentual: cellToNumber(parsed.variacaoMMPercentual),
-      impactoMM: cellToNumber(parsed.impactoMM),
-      impactoMMAbs: Math.abs(cellToNumber(parsed.impactoMM)),
-      variacaoMMPercentualAbs: Math.abs(cellToNumber(parsed.variacaoMMPercentual)),
-      classificacao,
-      magnitude: cellToNumber(parsed.magnitude),
-      mediaDinamica: cellToString(parsed.mediaDinamica) || null,
-      desvioEntradasReal: cellToNumber(parsed.desvioEntradasReal),
-      obs: cellToString(parsed.obs) || null,
-    };
-
-    rowsToUpsert.push({
-      where: { naturalKey },
-      create: { ...data, import: { connect: { id: "__IMPORT_ID__" } } } as any,
-      update: { ...data },
-    });
-    totalComVariacao++;
-  });
-
   const status: StatusImportacao =
     avisos.length > 0 ? StatusImportacao.SUCESSO_COM_AVISOS : StatusImportacao.SUCESSO;
 
   console.log("Leitura concluída");
   console.log("Total para importar:", rowsToUpsert.length);
+
   const importLog = await prisma.importLog.create({
     data: {
       arquivoOrigem,
