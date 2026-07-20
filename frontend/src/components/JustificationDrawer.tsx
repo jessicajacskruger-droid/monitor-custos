@@ -48,20 +48,24 @@ export default function JustificationDrawer({ variation, onClose, onSaved }: Pro
     setNewTypeMode(false);
   }
 
-  async function handleSave() {
-    setSaving(true);
-    try {
-      await saveJustification(variation.id, {
-        justificationTypeId: typeId || null,
-        textoLivre: texto || null,
-        autor: autor || null,
-      });
-      onSaved();
-      onClose();
-    } finally {
-      setSaving(false);
-    }
+async function handleSave() {
+  if (!variation) return;
+
+  setSaving(true);
+
+  try {
+    await saveJustification(variation.id, {
+      justificationTypeId: typeId || null,
+      textoLivre: texto || null,
+      autor: autor || null,
+    });
+
+    onSaved();
+    onClose();
+  } finally {
+    setSaving(false);
   }
+}
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-navy-950/40 backdrop-blur-sm">
