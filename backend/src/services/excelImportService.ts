@@ -109,9 +109,12 @@ export async function importMonitorExcel(
   const avisos: string[] = [];
 
   const workbook = new ExcelJS.Workbook();
+  console.log("Workbook criado");
   await workbook.xlsx.load(fileBuffer as any);
+  console.log("Workbook carregado");
 
   const sheet = workbook.getWorksheet(SHEET_NAME);
+  console.log("Worksheet localizada");
   if (!sheet) {
     throw new Error(
       `A aba "${SHEET_NAME}" não foi encontrada no arquivo. Verifique se o nome da aba não foi alterado.`
@@ -139,6 +142,7 @@ export async function importMonitorExcel(
   let totalComVariacao = 0;
   let totalIgnoradasOK = 0;
   const rowsToUpsert: Prisma.CostVariationUpsertArgs[] = [];
+  console.log("Começando leitura das linhas");
 
   sheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
     if (rowNumber === 1) return; // cabeçalho
@@ -216,6 +220,8 @@ export async function importMonitorExcel(
   const status: StatusImportacao =
     avisos.length > 0 ? StatusImportacao.SUCESSO_COM_AVISOS : StatusImportacao.SUCESSO;
 
+  console.log("Leitura concluída");
+  console.log("Total para importar:", rowsToUpsert.length);
   const importLog = await prisma.importLog.create({
     data: {
       arquivoOrigem,
