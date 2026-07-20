@@ -18,12 +18,18 @@ router.post("/", upload.single("file"), async (req, res) => {
       });
     }
 
-    const result = await importMonitorExcel(
-      req.file.buffer,
-      req.file.originalname
-    );
-
-    return res.status(201).json(result);
+  console.log("===== INÍCIO IMPORT =====");
+  console.log("Arquivo:", req.file.originalname);
+  console.log("Tamanho:", req.file.size);
+  
+  const result = await importMonitorExcel(
+    req.file.buffer,
+    req.file.originalname
+  );
+  
+  console.log("===== IMPORT FINALIZADO =====");
+  
+  return res.status(201).json(result);
 
   } catch (error) {
     console.error("========== ERRO NA IMPORTAÇÃO ==========");
