@@ -140,6 +140,7 @@ export async function importMonitorExcel(
   console.log("Iniciando leitura em streaming do arquivo");
 
   for await (const worksheetReader of workbookReader) {
+    if ((worksheetReader as any).name !== SHEET_NAME) {
       // Drena a aba sem processar/guardar nada, apenas para o parser
       // conseguir seguir em frente até a próxima aba do arquivo.
       for await (const _row of worksheetReader) {
@@ -148,8 +149,8 @@ export async function importMonitorExcel(
       continue;
     }
 
-  sheetEncontrada = true;
-  console.log("Processando primeira aba encontrada...");
+    sheetEncontrada = true;
+    console.log(`Aba "${SHEET_NAME}" localizada, processando linhas...`);
 
     for await (const row of worksheetReader) {
       if (row.number === 1) {
@@ -241,7 +242,9 @@ export async function importMonitorExcel(
   }
 
   if (!sheetEncontrada) {
-    throw new Error("Nenhuma aba encontrada no arquivo.");
+    throw new Error(
+      `A aba "${SHEET_NAME}" não foi encontrada no arquivo. Verifique se o nome da aba não foi alterado.`
+    );
   }
 
   const missingColumns = Object.keys(COLUMN_MAP).filter(
