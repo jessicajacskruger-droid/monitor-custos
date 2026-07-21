@@ -127,7 +127,13 @@ export async function importMonitorExcel(
 
   const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(
     Readable.from(fileBuffer),
-    {}
+    {
+      worksheets: "emit",
+      sharedStrings: "cache",
+      hyperlinks: "ignore",
+      styles: "ignore",
+      entries: "emit",
+    }
   );
 
   const colIndexToKey: Record<number, string> = {};
@@ -140,6 +146,10 @@ export async function importMonitorExcel(
   console.log("Iniciando leitura em streaming do arquivo");
 
   for await (const worksheetReader of workbookReader) {
+    
+    console.log("Nova worksheet encontrada");
+    console.log((worksheetReader as any).name);
+    
     if ((worksheetReader as any).name !== SHEET_NAME) {
       // Drena a aba sem processar/guardar nada, apenas para o parser
       // conseguir seguir em frente até a próxima aba do arquivo.
@@ -151,8 +161,16 @@ export async function importMonitorExcel(
 
     sheetEncontrada = true;
     console.log(`Aba "${SHEET_NAME}" localizada, processando linhas...`);
+    let linhaAtual = 0;
+    
+    try {
 
-    for await (const row of worksheetReader) {
+for await (const row of worksheetReader) {
+      linhaAtual = row.number;
+
+      if (linhaAtual % 1000 === 0) {
+        console.log(`Linha ${linhaAtual}`);
+      }
       if (row.number === 1) {
         // cabeçalho
         row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
@@ -231,7 +249,10 @@ export async function importMonitorExcel(
         desvioEntradasReal: cellToNumber(parsed.desvioEntradasReal),
         obs: cellToString(parsed.obs) || null,
       };
-
+      
+      if (totalComVariacao % 500 === 0) {
+        console.log(`Encontradas ${totalComVariacao} variações`);
+      }
       rowsToUpsert.push({
         where: { naturalKey },
         create: { ...data, import: { connect: { id: "__IMPORT_ID__" } } } as any,
@@ -239,6 +260,11 @@ export async function importMonitorExcel(
       });
       totalComVariacao++;
     }
+      catch (err) {
+  console.error("Erro na linha:", linhaAtual);
+  console.error(err);
+  throw err;
+}
   }
 
   if (!sheetEncontrada) {
