@@ -265,10 +265,6 @@ for await (const row of worksheetReader) {
       console.error(err);
       throw err;
     }
-  console.error("Erro na linha:", linhaAtual);
-  console.error(err);
-  throw err;
-}
   }
 
   if (!sheetEncontrada) {
