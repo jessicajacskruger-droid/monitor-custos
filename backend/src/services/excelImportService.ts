@@ -265,6 +265,10 @@ for await (const row of worksheetReader) {
       console.error(err);
       throw err;
     }
+
+    // Já lemos tudo que precisávamos da aba "Monitor". Não precisamos
+    // continuar o loop para as demais abas/planilhas ocultas do arquivo.
+    break;
   }
 
   if (!sheetEncontrada) {
