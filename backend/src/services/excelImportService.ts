@@ -146,9 +146,7 @@ export async function importMonitorExcel(
   console.log("Iniciando leitura em streaming do arquivo");
 
   for await (const worksheetReader of workbookReader) {
-    
-    console.log("Nova worksheet encontrada");
-    console.log((worksheetReader as any).name);
+console.log("Worksheet encontrada:", (worksheetReader as any).name);
     
     if ((worksheetReader as any).name !== SHEET_NAME) {
       // Drena a aba sem processar/guardar nada, apenas para o parser
