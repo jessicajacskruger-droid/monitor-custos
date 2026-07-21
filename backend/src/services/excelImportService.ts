@@ -256,9 +256,15 @@ for await (const row of worksheetReader) {
         create: { ...data, import: { connect: { id: "__IMPORT_ID__" } } } as any,
         update: { ...data },
       });
+
       totalComVariacao++;
     }
-      catch (err) {
+
+    } catch (err) {
+      console.error("Erro na linha:", linhaAtual);
+      console.error(err);
+      throw err;
+    }
   console.error("Erro na linha:", linhaAtual);
   console.error(err);
   throw err;
