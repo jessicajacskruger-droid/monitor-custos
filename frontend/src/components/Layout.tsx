@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { LayoutDashboard, Table2, BarChart3, ListChecks, UploadCloud, TrendingUp } from "lucide-react";
 import ImportModal from "./ImportModal";
+import { GlobalFiltersProvider } from "../context/GlobalFiltersContext";
 
 const NAV_ITEMS = [
   { to: "/", label: "Visão Geral", icon: LayoutDashboard, end: true },
@@ -62,7 +63,9 @@ export default function Layout() {
       </aside>
 
       <main className="flex-1 overflow-y-auto">
-        <Outlet context={{ refreshKey }} />
+        <GlobalFiltersProvider>
+          <Outlet context={{ refreshKey }} />
+        </GlobalFiltersProvider>
       </main>
 
       <ImportModal
