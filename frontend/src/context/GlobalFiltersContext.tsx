@@ -6,6 +6,7 @@ export interface GlobalFilters {
   ano?: string;
   tipoMaterial?: string;
   centro?: string;
+  categoriaContabil?: string;
 }
 
 interface GlobalFiltersContextValue {
