@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 export interface GlobalFilters {
   mes?: string;
+  ano?: string;
   tipoMaterial?: string;
   centro?: string;
 }
