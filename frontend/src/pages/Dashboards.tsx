@@ -5,7 +5,9 @@ import {
   Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis,
 } from "recharts";
 import PageHeader from "../components/PageHeader";
+import GlobalFilterBar from "../components/GlobalFilterBar";
 import FilterBar from "../components/FilterBar";
+import { useGlobalFilters } from "../context/GlobalFiltersContext";
 import {
   getDistribuicao, getEvolucaoMensal, getFornecedores, getPareto, getRankingImpacto,
   getRankingVariacao, listVariations,
@@ -25,6 +27,7 @@ function ChartCard({ title, children }: { title: string; children: ReactNode }) 
 }
 
 export default function Dashboards() {
+  const { globalFilters } = useGlobalFilters();
   const [filters, setFilters] = useState<VariationFilters>({ justificativa: "todos" });
   const [evolucao, setEvolucao] = useState<any[]>([]);
   const [rankingMateriais, setRankingMateriais] = useState<any[]>([]);
@@ -35,16 +38,17 @@ export default function Dashboards() {
   const [top10Variacao, setTop10Variacao] = useState<any[]>([]);
   const [dispersao, setDispersao] = useState<any[]>([]);
 
-  async function load() {
+async function load() {
+    const combined = { ...filters, ...globalFilters };
     const [e, rm, rf, p, d, ti, tv, disp] = await Promise.all([
-      getEvolucaoMensal(filters),
-      getRankingImpacto(filters, 8),
-      getFornecedores(filters, 8),
-      getPareto(filters, 15),
-      getDistribuicao(filters),
-      getRankingImpacto(filters, 10),
-      getRankingVariacao(filters, 10),
-      listVariations({ ...filters, page: 1, pageSize: 150, sortBy: "impacto", sortDir: "desc" }),
+      getEvolucaoMensal(combined),
+      getRankingImpacto(combined, 8),
+      getFornecedores(combined, 8),
+      getPareto(combined, 15),
+      getDistribuicao(combined),
+      getRankingImpacto(combined, 10),
+      getRankingVariacao(combined, 10),
+      listVariations({ ...combined, page: 1, pageSize: 150, sortBy: "impacto", sortDir: "desc" }),
     ]);
     setEvolucao(e);
     setRankingMateriais(rm);
@@ -56,16 +60,17 @@ export default function Dashboards() {
     setDispersao(disp.data.map((r: any) => ({ x: r.unitEntrada, y: r.medioMovel, material: r.material, z: r.impactoMMAbs })));
   }
 
-  useEffect(() => {
+useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(filters)]);
+  }, [JSON.stringify(filters), JSON.stringify(globalFilters)]);
 
   return (
     <div>
       <PageHeader title="Análise Gráfica" subtitle="Análise gráfica dos materiais com variação relevante" />
 
-      <div className="space-y-4 p-8">
+<div className="space-y-4 p-8">
+        <GlobalFilterBar />
         <FilterBar filters={filters} onChange={setFilters} />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
