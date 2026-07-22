@@ -11,8 +11,8 @@ const MESES = [
 
 export default function GlobalFilterBar() {
   const { globalFilters, setGlobalFilters } = useGlobalFilters();
-  const [opcoes, setOpcoes] = useState<FiltrosOpcoes>({ tiposMaterial: [], centros: [] });
-
+  const [opcoes, setOpcoes] = useState<FiltrosOpcoes>({ tiposMaterial: [], centros: [], categoriasContabeis: [] });
+  
   useEffect(() => {
     getFiltrosOpcoes().then(setOpcoes).catch(() => {});
   }, []);
@@ -21,7 +21,7 @@ export default function GlobalFilterBar() {
     setGlobalFilters({ ...globalFilters, [key]: value || undefined });
   }
 
-  const temFiltro = globalFilters.mes || globalFilters.ano || globalFilters.tipoMaterial || globalFilters.centro;
+  const temFiltro = globalFilters.mes || globalFilters.ano || globalFilters.tipoMaterial || globalFilters.centro || globalFilters.categoriaContabil;
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-brand-100 bg-white p-4 shadow-card">
@@ -74,6 +74,19 @@ export default function GlobalFilterBar() {
           </option>
         ))}
       </select>
+
+      <select
+  value={globalFilters.categoriaContabil || ""}
+  onChange={(e) => set("categoriaContabil", e.target.value)}
+  className="rounded-lg border border-surface-muted bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
+>
+  <option value="">Todas as Categorias</option>
+  {opcoes.categoriasContabeis.map((c) => (
+    <option key={c} value={c}>
+      {c}
+    </option>
+  ))}
+</select>
 
       {temFiltro && (
         <button onClick={() => setGlobalFilters({})} className="text-sm font-medium text-danger-600 hover:underline">
