@@ -7,6 +7,8 @@ import {
 } from "recharts";
 import PageHeader from "../components/PageHeader";
 import KpiCard from "../components/KpiCard";
+import GlobalFilterBar from "../components/GlobalFilterBar";
+import { useGlobalFilters } from "../context/GlobalFiltersContext";
 import {
   getEvolucaoMensal, getFornecedores, getKpis, getRankingImpacto, getReincidencia,
 } from "../services/api";
@@ -14,6 +16,7 @@ import type { KpiData } from "../types";
 import { formatCurrency, formatCurrencyPrecise, formatPercent } from "../utils/format";
 
 export default function Dashboard() {
+  const { globalFilters } = useGlobalFilters();
   const [kpis, setKpis] = useState<KpiData | null>(null);
   const [evolucao, setEvolucao] = useState<any[]>([]);
   const [rankingImpacto, setRankingImpacto] = useState<any[]>([]);
@@ -22,11 +25,11 @@ export default function Dashboard() {
 
   async function load() {
     const [k, e, r, f, rc] = await Promise.all([
-      getKpis({}),
-      getEvolucaoMensal({}),
-      getRankingImpacto({}, 6),
-      getFornecedores({}, 6),
-      getReincidencia({}, 6),
+      getKpis(globalFilters),
+      getEvolucaoMensal(globalFilters),
+      getRankingImpacto(globalFilters, 6),
+      getFornecedores(globalFilters, 6),
+      getReincidencia(globalFilters, 6),
     ]);
     setKpis(k);
     setEvolucao(e);
@@ -37,13 +40,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     load();
-  }, []);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(globalFilters)]);
+  
   return (
     <div>
       <PageHeader title="Visão Geral" subtitle="Visão geral dos materiais com variação de custo relevante" />
 
       <div className="space-y-6 p-8">
+        <GlobalFilterBar />
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <KpiCard
             label="Materiais com variação"
