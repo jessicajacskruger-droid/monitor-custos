@@ -3,6 +3,26 @@ import { prisma } from "../prisma";
 import { buildWhere, VariationQuery } from "../utils/filters";
 
 const router = Router();
+// GET /api/dashboard/filtros-opcoes — valores distintos de TMat e Centro, para popular os selects de filtro
+router.get("/filtros-opcoes", async (_req, res) => {
+  const [tipos, centros] = await Promise.all([
+    prisma.costVariation.findMany({
+      where: { tipoMaterial: { not: null } },
+      select: { tipoMaterial: true },
+      distinct: ["tipoMaterial"],
+      orderBy: { tipoMaterial: "asc" },
+    }),
+    prisma.costVariation.findMany({
+      select: { centro: true },
+      distinct: ["centro"],
+      orderBy: { centro: "asc" },
+    }),
+  ]);
+  res.json({
+    tiposMaterial: tipos.map((t) => t.tipoMaterial).filter(Boolean),
+    centros: centros.map((c) => c.centro).filter(Boolean),
+  });
+});
 
 // GET /api/dashboard/kpis — indicadores principais da página inicial
 router.get("/kpis", async (req, res) => {
