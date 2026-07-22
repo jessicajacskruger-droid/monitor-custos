@@ -3,6 +3,8 @@ import { Prisma } from "@prisma/client";
 export interface VariationQuery {
   mes?: string;
   ano?: string;
+  tipoMaterial?: string;
+  centro?: string;
   dataInicio?: string;
   dataFim?: string;
   material?: string;
@@ -23,7 +25,9 @@ export function buildWhere(q: VariationQuery): Prisma.CostVariationWhereInput {
 
   if (q.mes) AND.push({ mes: Number(q.mes) });
   if (q.ano) AND.push({ anoDM: Number(q.ano) });
-
+  if (q.tipoMaterial) AND.push({ tipoMaterial: q.tipoMaterial });
+  if (q.centro) AND.push({ centro: q.centro });
+  
   if (q.dataInicio || q.dataFim) {
     AND.push({
       dataLancamento: {
