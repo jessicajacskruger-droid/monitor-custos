@@ -92,6 +92,7 @@ export interface VariationFilters {
   ano?: string;
   tipoMaterial?: string;
   centro?: string;
+  categoriaContabil?: string;
   material?: string;
   descricao?: string;
   fornecedor?: string;
