@@ -119,3 +119,8 @@ export interface ImportLog {
   mensagem: string | null;
   duracaoMs: number | null;
 }
+
+export interface FiltrosOpcoes {
+  tiposMaterial: string[];
+  centros: string[];
+}
