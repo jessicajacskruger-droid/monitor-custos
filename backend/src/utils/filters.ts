@@ -5,6 +5,7 @@ export interface VariationQuery {
   ano?: string;
   tipoMaterial?: string;
   centro?: string;
+  categoriaContabil?: string;
   dataInicio?: string;
   dataFim?: string;
   material?: string;
@@ -27,6 +28,7 @@ export function buildWhere(q: VariationQuery): Prisma.CostVariationWhereInput {
   if (q.ano) AND.push({ anoDM: Number(q.ano) });
   if (q.tipoMaterial) AND.push({ tipoMaterial: q.tipoMaterial });
   if (q.centro) AND.push({ centro: q.centro });
+  if (q.categoriaContabil) AND.push({ categoriaContabil: q.categoriaContabil });
   
   if (q.dataInicio || q.dataFim) {
     AND.push({
