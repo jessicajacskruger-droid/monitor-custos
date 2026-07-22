@@ -63,7 +63,7 @@ export default function Dashboards() {
 
   return (
     <div>
-      <PageHeader title="Dashboards" subtitle="Análise gráfica dos materiais com variação relevante" />
+      <PageHeader title="Análise Gráfica" subtitle="Análise gráfica dos materiais com variação relevante" />
 
       <div className="space-y-4 p-8">
         <FilterBar filters={filters} onChange={setFilters} />
