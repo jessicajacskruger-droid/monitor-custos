@@ -19,7 +19,6 @@ export default function FilterBar({ filters, onChange }: Props) {
   function set<K extends keyof VariationFilters>(key: K, value: VariationFilters[K]) {
     onChange({ ...filters, [key]: value, page: 1 });
   }
-
   function clearAll() {
     onChange({ page: 1, pageSize: filters.pageSize, sortBy: filters.sortBy, sortDir: filters.sortDir });
   }
