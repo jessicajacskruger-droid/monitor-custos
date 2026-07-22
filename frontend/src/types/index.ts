@@ -48,6 +48,9 @@ export interface CostVariation {
   mes: number;
   dataLancamento: string;
   centro: string;
+  docCompra: string | null;
+  item: string | null;
+  referencia: string | null;
   fornecedor: string;
   contaFornecedor: string | null;
   unitEntrada: number;
@@ -87,6 +90,8 @@ export interface KpiData {
 export interface VariationFilters {
   mes?: string;
   ano?: string;
+  tipoMaterial?: string;
+  centro?: string;
   material?: string;
   descricao?: string;
   fornecedor?: string;
