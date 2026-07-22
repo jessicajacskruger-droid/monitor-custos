@@ -41,7 +41,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <PageHeader title="Dashboard" subtitle="Visão geral dos materiais com variação de custo relevante" />
+      <PageHeader title="Visão Geral" subtitle="Visão geral dos materiais com variação de custo relevante" />
 
       <div className="space-y-6 p-8">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
