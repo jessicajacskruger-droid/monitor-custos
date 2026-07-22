@@ -4,9 +4,9 @@ import { LayoutDashboard, Table2, BarChart3, ListChecks, UploadCloud, TrendingUp
 import ImportModal from "./ImportModal";
 
 const NAV_ITEMS = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/", label: "Visão Geral", icon: LayoutDashboard, end: true },
   { to: "/monitoramento", label: "Monitoramento", icon: Table2 },
-  { to: "/dashboards", label: "Dashboards", icon: BarChart3 },
+  { to: "/dashboards", label: "Análise Gráfica", icon: BarChart3 },
   { to: "/justificativas", label: "Tipos de Justificativa", icon: ListChecks },
 ];
 
