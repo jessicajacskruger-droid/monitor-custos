@@ -71,8 +71,9 @@ export default function VariationsTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-surface-muted text-left text-xs uppercase tracking-wide text-navy-500">
-              <th className="w-10 px-4 py-3"></th>
+<th className="w-10 px-4 py-3"></th>
               <th className="px-3 py-3">Material</th>
+              <th className="px-3 py-3">Pedido</th>
               <th className="px-3 py-3">Fornecedor</th>
               <th className="px-3 py-3">Período</th>
               <th className="px-3 py-3 text-right">Unit. Entrada</th>
@@ -107,9 +108,17 @@ export default function VariationsTable({
                     <td className="px-4 py-3">
                       {semJustificativa && <AlertTriangle size={15} className="text-danger-500" />}
                     </td>
-                    <td className="px-3 py-3">
+<td className="px-3 py-3">
                       <p className="font-medium text-navy-900">{row.material}</p>
                       <p className="max-w-[220px] truncate text-xs text-navy-500">{row.descricaoMaterial}</p>
+                    </td>
+                    <td className="px-3 py-3">
+                      <p className="text-navy-700">{row.docCompra || "—"}</p>
+                      <p className="text-xs text-navy-500">
+                        {row.item ? `Item ${row.item}` : ""}
+                        {row.item && row.referencia ? " · " : ""}
+                        {row.referencia || ""}
+                      </p>
                     </td>
                     <td className="px-3 py-3">
                       <p className="max-w-[160px] truncate text-navy-700">{row.fornecedor}</p>
