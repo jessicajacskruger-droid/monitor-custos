@@ -53,27 +53,6 @@ export default function FilterBar({ filters, onChange }: Props) {
           ))}
         </select>
 
-        <select
-          value={filters.mes || ""}
-          onChange={(e) => set("mes", e.target.value)}
-          className="rounded-lg border border-surface-muted bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
-        >
-          <option value="">Mês</option>
-          {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-            <option key={m} value={m}>
-              {String(m).padStart(2, "0")}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="number"
-          placeholder="Ano"
-          value={filters.ano || ""}
-          onChange={(e) => set("ano", e.target.value)}
-          className="w-24 rounded-lg border border-surface-muted bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
-        />
-
         <button
           onClick={() => setAdvancedOpen((v) => !v)}
           className="flex items-center gap-1.5 rounded-lg border border-surface-muted px-3 py-2 text-sm font-medium text-navy-700 hover:bg-surface"
