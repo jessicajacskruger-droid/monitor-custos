@@ -21,7 +21,7 @@ export default function GlobalFilterBar() {
     setGlobalFilters({ ...globalFilters, [key]: value || undefined });
   }
 
-  const temFiltro = globalFilters.mes || globalFilters.tipoMaterial || globalFilters.centro;
+  const temFiltro = globalFilters.mes || globalFilters.ano || globalFilters.tipoMaterial || globalFilters.centro;
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-brand-100 bg-white p-4 shadow-card">
@@ -42,6 +42,13 @@ export default function GlobalFilterBar() {
         ))}
       </select>
 
+      <input
+  type="number"
+  placeholder="Ano"
+  value={globalFilters.ano || ""}
+  onChange={(e) => set("ano", e.target.value)}
+  className="w-24 rounded-lg border border-surface-muted bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
+/>
       <select
         value={globalFilters.tipoMaterial || ""}
         onChange={(e) => set("tipoMaterial", e.target.value)}
