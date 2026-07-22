@@ -124,4 +124,5 @@ export interface ImportLog {
 export interface FiltrosOpcoes {
   tiposMaterial: string[];
   centros: string[];
+  categoriasContabeis: string[];
 }
