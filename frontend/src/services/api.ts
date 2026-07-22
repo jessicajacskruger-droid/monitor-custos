@@ -1,6 +1,7 @@
 import axios from "axios";
 import type {
   CostVariation,
+  FiltrosOpcoes,
   ImportLog,
   Justification,
   JustificationType,
@@ -76,6 +77,11 @@ export async function deleteJustificationType(id: string) {
 // ---------- Dashboard ----------
 export async function getKpis(filters: VariationFilters) {
   const { data } = await api.get<KpiData>("/dashboard/kpis", { params: cleanParams(filters) });
+  return data;
+}
+
+export async function getFiltrosOpcoes() {
+  const { data } = await api.get<FiltrosOpcoes>("/dashboard/filtros-opcoes");
   return data;
 }
 
