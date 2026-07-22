@@ -5,7 +5,7 @@ import { buildWhere, VariationQuery } from "../utils/filters";
 const router = Router();
 // GET /api/dashboard/filtros-opcoes — valores distintos de TMat e Centro, para popular os selects de filtro
 router.get("/filtros-opcoes", async (_req, res) => {
-  const [tipos, centros] = await Promise.all([
+  const [tipos, centros, categorias] = await Promise.all([
     prisma.costVariation.findMany({
       where: { tipoMaterial: { not: null } },
       select: { tipoMaterial: true },
@@ -17,10 +17,17 @@ router.get("/filtros-opcoes", async (_req, res) => {
       distinct: ["centro"],
       orderBy: { centro: "asc" },
     }),
+    prisma.costVariation.findMany({
+      where: { categoriaContabil: { not: null } },
+      select: { categoriaContabil: true },
+      distinct: ["categoriaContabil"],
+      orderBy: { categoriaContabil: "asc" },
+    }),
   ]);
   res.json({
     tiposMaterial: tipos.map((t) => t.tipoMaterial).filter(Boolean),
     centros: centros.map((c) => c.centro).filter(Boolean),
+    categoriasContabeis: categorias.map((c) => c.categoriaContabil).filter(Boolean),
   });
 });
 
