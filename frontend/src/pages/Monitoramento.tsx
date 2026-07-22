@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import PageHeader from "../components/PageHeader";
+import GlobalFilterBar from "../components/GlobalFilterBar";
 import FilterBar from "../components/FilterBar";
 import VariationsTable from "../components/VariationsTable";
 import ExportMenu from "../components/ExportMenu";
 import JustificationDrawer from "../components/JustificationDrawer";
 import { listVariations } from "../services/api";
+import { useGlobalFilters } from "../context/GlobalFiltersContext";
 import type { CostVariation, VariationFilters } from "../types";
 
 export default function Monitoramento() {
+  const { globalFilters } = useGlobalFilters();
   const [filters, setFilters] = useState<VariationFilters>({
     page: 1,
     pageSize: 50,
@@ -21,10 +24,10 @@ export default function Monitoramento() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<CostVariation | null>(null);
 
-  async function load() {
+async function load() {
     setLoading(true);
     try {
-      const res = await listVariations(filters);
+      const res = await listVariations({ ...filters, ...globalFilters });
       setData(res.data);
       setTotal(res.total);
       setTotalPages(res.totalPages);
@@ -32,21 +35,21 @@ export default function Monitoramento() {
       setLoading(false);
     }
   }
-
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(filters)]);
+  }, [JSON.stringify(filters), JSON.stringify(globalFilters)]);
+  
 
   return (
     <div>
-      <PageHeader
+<PageHeader
         title="Monitoramento"
         subtitle="Materiais com variação relevante — classificação diferente de 'OK'"
-        actions={<ExportMenu filters={filters} />}
+        actions={<ExportMenu filters={{ ...filters, ...globalFilters }} />}
       />
-
       <div className="space-y-4 p-8">
+        <GlobalFilterBar />
         <FilterBar filters={filters} onChange={setFilters} />
         <VariationsTable
           data={data}
