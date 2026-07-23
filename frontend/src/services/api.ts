@@ -137,7 +137,7 @@ export async function uploadExcel(file: File, onProgress?: (pct: number) => void
     onUploadProgress: (evt) => {
       if (onProgress && evt.total) onProgress(Math.round((evt.loaded * 100) / evt.total));
     },
-    timeout: 5 * 60 * 1000,
+  timeout: 15 * 60 * 1000,
   });
   return data;
 }
