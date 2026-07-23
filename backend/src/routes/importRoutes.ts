@@ -53,5 +53,25 @@ router.get("/history", async (_req, res) => {
   });
   res.json(logs);
 });
+// DELETE /api/import/reset — apaga TODOS os dados importados (CostVariation,
+// Justification, JustificationHistory, ImportLog), mas preserva os
+// JustificationType cadastrados. Ação destrutiva e sem volta.
+router.delete("/reset", async (_req, res) => {
+  try {
+    // Ordem importa por causa das foreign keys: primeiro quem depende,
+    // depois quem é depended-on.
+    await prisma.justificationHistory.deleteMany({});
+    await prisma.justification.deleteMany({});
+    await prisma.costVariation.deleteMany({});
+    await prisma.importLog.deleteMany({});
 
+    console.log("===== RESET: todos os dados importados foram apagados =====");
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    console.error("Erro ao resetar dados:", error);
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Erro ao apagar os dados.",
+    });
+  }
+});
 export default router;
