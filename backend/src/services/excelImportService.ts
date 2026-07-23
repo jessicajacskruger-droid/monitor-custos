@@ -281,13 +281,25 @@ for await (const row of worksheetReader) {
   }
 // Descobre quantos desses registros já existiam (serão atualizados)
   // e quantos são novos, comparando as naturalKeys com o que já está no banco.
-  const naturalKeys = rowsToUpsert.map((r) => r.where.naturalKey as string);
+  // Antes disso, remove duplicatas DENTRO do próprio arquivo (mesma
+  // naturalKey em mais de uma linha), já que elas colapsam em um único
+  // registro no banco e não devem ser contadas duas vezes como "novas".
+  const naturalKeysComRepeticao = rowsToUpsert.map((r) => r.where.naturalKey as string);
+  const naturalKeysUnicas = [...new Set(naturalKeysComRepeticao)];
+  const duplicatasNoArquivo = naturalKeysComRepeticao.length - naturalKeysUnicas.length;
+
   const existentes = await prisma.costVariation.findMany({
-    where: { naturalKey: { in: naturalKeys } },
+    where: { naturalKey: { in: naturalKeysUnicas } },
     select: { naturalKey: true },
   });
   const registrosAtualizados = existentes.length;
-  const registrosNovos = naturalKeys.length - registrosAtualizados;
+  const registrosNovos = naturalKeysUnicas.length - registrosAtualizados;
+
+  if (duplicatasNoArquivo > 0) {
+    avisos.push(
+      `${duplicatasNoArquivo} linha(s) duplicada(s) no arquivo (mesmo Material/Doc.compra/Item/Referência/Mês/Ano) foram consolidadas em um único registro.`
+    );
+  }
   const missingColumns = Object.keys(COLUMN_MAP).filter(
     (h) => !Object.values(colIndexToKey).includes(COLUMN_MAP[h])
   );
