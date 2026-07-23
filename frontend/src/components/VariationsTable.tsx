@@ -62,7 +62,7 @@ export default function VariationsTable({
                 : "text-navy-500 hover:text-navy-700"
             }`}
           >
-            Maior variação % <SortIcon field="variacao" />
+Maior diferença % <SortIcon field="variacao" />
           </button>
         </div>
       </div>
@@ -76,10 +76,10 @@ export default function VariationsTable({
               <th className="px-3 py-3">Pedido</th>
               <th className="px-3 py-3">Fornecedor</th>
               <th className="px-3 py-3">Período</th>
-              <th className="px-3 py-3 text-right">Unit. Entrada</th>
+              <th className="px-3 py-3 text-right">Preço de Entrada</th>
               <th className="px-3 py-3 text-right">Médio Móvel</th>
-              <th className="px-3 py-3 text-right">Variação %</th>
-              <th className="px-3 py-3 text-right">Impacto $</th>
+              <th className="px-3 py-3 text-right">Diferença (%)</th>
+              <th className="px-3 py-3 text-right">Impacto Financeiro (R$)</th>
               <th className="px-3 py-3">Classificação</th>
               <th className="px-3 py-3">Justificativa</th>
             </tr>
