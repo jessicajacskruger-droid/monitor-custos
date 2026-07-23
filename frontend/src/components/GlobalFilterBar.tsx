@@ -3,6 +3,7 @@ import { CalendarDays } from "lucide-react";
 import { getFiltrosOpcoes } from "../services/api";
 import { useGlobalFilters } from "../context/GlobalFiltersContext";
 import type { FiltrosOpcoes } from "../types";
+import Glossario from "./Glossario";
 
 const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -88,11 +89,14 @@ export default function GlobalFilterBar() {
   ))}
 </select>
 
-      {temFiltro && (
+{temFiltro && (
         <button onClick={() => setGlobalFilters({})} className="text-sm font-medium text-danger-600 hover:underline">
           Limpar filtros gerais
         </button>
       )}
+      <div className="ml-auto">
+        <Glossario />
+      </div>
     </div>
   );
 }
