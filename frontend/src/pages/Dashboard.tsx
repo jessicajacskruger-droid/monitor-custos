@@ -129,9 +129,9 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div className="rounded-2xl bg-white p-5 shadow-card">
-           <p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
-              Evolução mensal do impacto financeiro
-              <InfoTooltip text="Soma do Impacto MM $ (com sinal) de todos os materiais filtrados, agrupada por mês/ano de lançamento." />
+<p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
+              Evolução mensal do impacto financeiro (absoluto)
+              <InfoTooltip text="Soma do Impacto Financeiro em valor absoluto (sem compensar aumentos e reduções entre si), por mês/ano. É diferente do KPI 'Impacto financeiro total' acima, que é líquido (com sinal) — por isso os dois números não coincidem." />
             </p>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={evolucao}>
@@ -139,7 +139,7 @@ export default function Dashboard() {
                 <XAxis dataKey="periodo" tick={{ fontSize: 11 }} stroke="#8494AC" />
                 <YAxis tick={{ fontSize: 11 }} stroke="#8494AC" tickFormatter={(v) => formatCurrency(v)} width={80} />
                 <Tooltip formatter={(v: number) => formatCurrencyPrecise(v)} />
-                <Line type="monotone" dataKey="impactoAbsolutoTotal" stroke="#1E4B8F" strokeWidth={2.5} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="impactoAbsolutoTotal" name="Impacto Absoluto" stroke="#1E4B8F" strokeWidth={2.5} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
