@@ -147,6 +147,11 @@ export async function getImportHistory() {
   return data;
 }
 
+export async function resetAllData() {
+  const { data } = await api.delete("/import/reset");
+  return data;
+}
+
 // ---------- Exportação ----------
 export function buildExportUrl(format: "excel" | "csv" | "pdf", filters: VariationFilters) {
   const params = new URLSearchParams(cleanParams(filters) as any).toString();
