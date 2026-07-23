@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import PageHeader from "../components/PageHeader";
 import KpiCard from "../components/KpiCard";
+import InfoTooltip from "../components/InfoTooltip";
 import GlobalFilterBar from "../components/GlobalFilterBar";
 import { useGlobalFilters } from "../context/GlobalFiltersContext";
 import {
@@ -50,23 +51,26 @@ export default function Dashboard() {
       <div className="space-y-6 p-8">
         <GlobalFilterBar />
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <KpiCard
+<KpiCard
             label="Materiais com variação"
             value={kpis ? String(kpis.totalMateriaisComVariacao) : "…"}
             icon={Package}
             tone="brand"
+            info="Quantidade de materiais cuja classificação (coluna 'Análise da Variação MM %' do Excel) é diferente de 'OK', dentro dos filtros ativos."
           />
           <KpiCard
             label="Impacto financeiro total"
             value={kpis ? formatCurrency(kpis.impactoFinanceiroTotal) : "…"}
             icon={DollarSign}
             tone="violet"
+            info="Soma do campo 'Impacto MM $' de todos os materiais filtrados. Aumentos e reduções se compensam (é o impacto líquido, com sinal)."
           />
           <KpiCard
             label="Variação média"
             value={kpis ? formatPercent(kpis.variacaoMedia) : "…"}
             icon={kpis && kpis.variacaoMedia >= 0 ? TrendingUp : TrendingDown}
             tone="navy"
+            info="Média simples do campo 'Variação MM %' de todos os materiais filtrados."
           />
           <KpiCard
             label="% já justificado"
@@ -74,20 +78,23 @@ export default function Dashboard() {
             icon={CheckCircle2}
             tone="success"
             subtitle={kpis ? `${kpis.materiaisComJustificativa} de ${kpis.totalMateriaisComVariacao}` : undefined}
+            info="Percentual de materiais que já têm uma justificativa registrada (tipo ou texto livre) sobre o total de materiais com variação relevante."
           />
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl bg-white p-5 shadow-card">
+        <div className="rounded-2xl bg-white p-5 shadow-card">
             <p className="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase text-navy-500">
               <AlertCircle size={13} className="text-danger-500" /> Sem justificativa
+              <InfoTooltip text="Materiais com variação relevante que ainda não têm nenhuma justificativa cadastrada." />
             </p>
             <p className="text-2xl font-bold text-navy-900">{kpis?.materiaisSemJustificativa ?? "…"}</p>
             <p className="mt-1 text-xs text-navy-500">materiais aguardando análise da Controladoria</p>
           </div>
           <div className="rounded-2xl bg-white p-5 shadow-card">
-            <p className="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase text-navy-500">
+<p className="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase text-navy-500">
               <TrendingUp size={13} className="text-danger-500" /> Maior aumento
+              <InfoTooltip text="O material com a maior 'Variação MM %' positiva entre os filtrados (maior aumento percentual de preço)." />
             </p>
             {kpis?.maiorAumento ? (
               <>
@@ -102,8 +109,9 @@ export default function Dashboard() {
             )}
           </div>
           <div className="rounded-2xl bg-white p-5 shadow-card">
-            <p className="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase text-navy-500">
+<p className="mb-1 flex items-center gap-1.5 text-xs font-medium uppercase text-navy-500">
               <TrendingDown size={13} className="text-brand-600" /> Maior redução
+              <InfoTooltip text="O material com a maior 'Variação MM %' negativa entre os filtrados (maior queda percentual de preço)." />
             </p>
             {kpis?.maiorReducao ? (
               <>
@@ -121,7 +129,10 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div className="rounded-2xl bg-white p-5 shadow-card">
-            <p className="mb-4 text-sm font-semibold text-navy-800">Evolução mensal do impacto financeiro</p>
+           <p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
+              Evolução mensal do impacto financeiro
+              <InfoTooltip text="Soma do Impacto MM $ (com sinal) de todos os materiais filtrados, agrupada por mês/ano de lançamento." />
+            </p>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={evolucao}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EEF1F6" />
@@ -134,7 +145,10 @@ export default function Dashboard() {
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow-card">
-            <p className="mb-4 text-sm font-semibold text-navy-800">Top materiais por impacto financeiro</p>
+            <p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
+              Top materiais por impacto financeiro
+              <InfoTooltip text="Os 6 materiais com maior Impacto MM $ em valor absoluto (aumentos e reduções mais significativos), dentro dos filtros ativos." />
+            </p>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={rankingImpacto} layout="vertical" margin={{ left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EEF1F6" horizontal={false} />
@@ -155,8 +169,9 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div className="rounded-2xl bg-white p-5 shadow-card">
-            <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
+<p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
               <Building2 size={15} className="text-brand-600" /> Fornecedores com maior impacto
+              <InfoTooltip text="Fornecedores agrupados pela soma do Impacto MM $ absoluto de todos os seus materiais com variação relevante." />
             </p>
             <div className="space-y-2">
               {fornecedores.map((f, i) => (
@@ -176,8 +191,9 @@ export default function Dashboard() {
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow-card">
-            <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
+<p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
               <Repeat2 size={15} className="text-violet-500" /> Materiais com maior reincidência
+              <InfoTooltip text="Materiais que aparecem com variação relevante em mais meses distintos — indica um problema recorrente de preço, não pontual." />
             </p>
             <div className="space-y-2">
               {reincidencia.map((r) => (
