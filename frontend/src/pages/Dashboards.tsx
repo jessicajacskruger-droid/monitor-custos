@@ -87,7 +87,7 @@ useEffect(() => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#EEF1F6" />
                 <XAxis dataKey="periodo" tick={{ fontSize: 11 }} stroke="#8494AC" />
                 <YAxis yAxisId="left" tick={{ fontSize: 11 }} stroke="#8494AC" tickFormatter={(v) => formatCurrency(v)} width={80} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} stroke="#8494AC" tickFormatter={(v) => `${v}%`} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} stroke="#8494AC" tickFormatter={(v) => `${(v * 100).toFixed(1)}%`} />
                 <Tooltip formatter={(v: number, name) => (name === "variacaoMedia" ? formatPercent(v) : formatCurrencyPrecise(v))} />
                 <Bar yAxisId="left" dataKey="impactoAbsolutoTotal" fill="#1E4B8F" radius={[4, 4, 0, 0]} />
                 <Line yAxisId="right" type="monotone" dataKey="variacaoMedia" stroke="#6C4FD1" strokeWidth={2.5} dot={{ r: 3 }} />
