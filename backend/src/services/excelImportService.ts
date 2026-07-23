@@ -91,6 +91,9 @@ export interface ImportResult {
   totalLinhasLidas: number;
   totalComVariacao: number;
   totalIgnoradasOK: number;
+  registrosNovos: number;
+  registrosAtualizados: number;
+  totalAtualNoBanco: number;
   avisos: string[];
 }
 
@@ -276,7 +279,15 @@ for await (const row of worksheetReader) {
       `A aba "${SHEET_NAME}" não foi encontrada no arquivo. Verifique se o nome da aba não foi alterado.`
     );
   }
-
+// Descobre quantos desses registros já existiam (serão atualizados)
+  // e quantos são novos, comparando as naturalKeys com o que já está no banco.
+  const naturalKeys = rowsToUpsert.map((r) => r.where.naturalKey as string);
+  const existentes = await prisma.costVariation.findMany({
+    where: { naturalKey: { in: naturalKeys } },
+    select: { naturalKey: true },
+  });
+  const registrosAtualizados = existentes.length;
+  const registrosNovos = naturalKeys.length - registrosAtualizados;
   const missingColumns = Object.keys(COLUMN_MAP).filter(
     (h) => !Object.values(colIndexToKey).includes(COLUMN_MAP[h])
   );
@@ -325,12 +336,17 @@ for await (const row of worksheetReader) {
     data: { duracaoMs: Date.now() - inicio },
   });
 
+const totalAtualNoBanco = await prisma.costVariation.count();
+
   return {
     importId: importLog.id,
     status,
     totalLinhasLidas,
     totalComVariacao,
     totalIgnoradasOK,
+    registrosNovos,
+    registrosAtualizados,
+    totalAtualNoBanco,
     avisos,
   };
 }
