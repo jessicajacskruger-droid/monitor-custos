@@ -21,21 +21,24 @@ export default function Dashboard() {
   const [kpis, setKpis] = useState<KpiData | null>(null);
   const [evolucao, setEvolucao] = useState<any[]>([]);
   const [rankingImpacto, setRankingImpacto] = useState<any[]>([]);
-  const [fornecedores, setFornecedores] = useState<any[]>([]);
+  const [fornecedoresAumento, setFornecedoresAumento] = useState<any[]>([]);
+  const [fornecedoresReducao, setFornecedoresReducao] = useState<any[]>([]);
   const [reincidencia, setReincidencia] = useState<any[]>([]);
 
-  async function load() {
-    const [k, e, r, f, rc] = await Promise.all([
+async function load() {
+    const [k, e, r, fa, fr, rc] = await Promise.all([
       getKpis(globalFilters),
       getEvolucaoMensal(globalFilters),
       getRankingImpacto(globalFilters, 6),
-      getFornecedores(globalFilters, 6),
+      getFornecedores(globalFilters, 6, "aumento"),
+      getFornecedores(globalFilters, 6, "reducao"),
       getReincidencia(globalFilters, 6),
     ]);
     setKpis(k);
     setEvolucao(e);
     setRankingImpacto(r);
-    setFornecedores(f);
+    setFornecedoresAumento(fa);
+    setFornecedoresReducao(fr);
     setReincidencia(rc);
   }
 
@@ -167,40 +170,68 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="rounded-2xl bg-white p-5 shadow-card">
-<p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
-              <Building2 size={15} className="text-brand-600" /> Fornecedores com maior impacto
-              <InfoTooltip text="Fornecedores agrupados pela soma do Impacto MM $ absoluto de todos os seus materiais com variação relevante." />
+            <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
+              <Building2 size={15} className="text-danger-600" /> Fornecedores com maior aumento
+              <InfoTooltip text="Fornecedores cuja soma do impacto financeiro líquido foi positiva, ordenados do maior aumento de custo para o menor." />
             </p>
             <div className="space-y-2">
-              {fornecedores.map((f, i) => (
+              {fornecedoresAumento.map((f, i) => (
+                <div key={f.fornecedor} className="flex items-center justify-between rounded-lg bg-surface px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-danger-50 text-[10px] font-semibold text-danger-600">
+                      {i + 1}
+                    </span>
+                    <span className="max-w-[170px] truncate text-sm text-navy-800">{f.fornecedor}</span>
+                  </div>
+                  <span className="text-sm font-semibold tabular-nums text-danger-600">
+                    {formatCurrency(f.impactoTotal)}
+                  </span>
+                </div>
+              ))}
+              {fornecedoresAumento.length === 0 && (
+                <p className="text-xs text-navy-400">Nenhum fornecedor com aumento líquido nos filtros atuais.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white p-5 shadow-card">
+            <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
+              <Building2 size={15} className="text-brand-600" /> Fornecedores com maior redução
+              <InfoTooltip text="Fornecedores cuja soma do impacto financeiro líquido foi negativa, ordenados da maior economia para a menor." />
+            </p>
+            <div className="space-y-2">
+              {fornecedoresReducao.map((f, i) => (
                 <div key={f.fornecedor} className="flex items-center justify-between rounded-lg bg-surface px-3 py-2">
                   <div className="flex items-center gap-2">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 text-[10px] font-semibold text-brand-700">
                       {i + 1}
                     </span>
-                    <span className="max-w-[220px] truncate text-sm text-navy-800">{f.fornecedor}</span>
+                    <span className="max-w-[170px] truncate text-sm text-navy-800">{f.fornecedor}</span>
                   </div>
-                  <span className="text-sm font-semibold tabular-nums text-navy-900">
-                    {formatCurrency(f.impactoAbsolutoTotal)}
+                  <span className="text-sm font-semibold tabular-nums text-brand-700">
+                    {formatCurrency(f.impactoTotal)}
                   </span>
                 </div>
               ))}
+              {fornecedoresReducao.length === 0 && (
+                <p className="text-xs text-navy-400">Nenhum fornecedor com redução líquida nos filtros atuais.</p>
+              )}
             </div>
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow-card">
-<p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
+            <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
               <Repeat2 size={15} className="text-violet-500" /> Materiais com maior reincidência
-              <InfoTooltip text="Quantidade de entradas (linhas) com variação relevante que aquele material teve ao todo, somando todos os períodos importados. Um número alto indica um problema recorrente de preço." />
+              <InfoTooltip text="Quantidade de entradas (linhas) com variação relevante que aquele material teve ao todo, somando todos os períodos importados." />
             </p>
             <div className="space-y-2">
               {reincidencia.map((r) => (
                 <div key={r.material} className="flex items-center justify-between rounded-lg bg-surface px-3 py-2">
                   <div>
                     <p className="text-sm text-navy-800">{r.material}</p>
-                    <p className="max-w-[220px] truncate text-xs text-navy-500">{r.descricaoMaterial}</p>
+                    <p className="max-w-[170px] truncate text-xs text-navy-500">{r.descricaoMaterial}</p>
                   </div>
                   <span className="rounded-full bg-violet-400/10 px-2 py-1 text-xs font-semibold text-violet-600">
                     {r.ocorrencias}x
