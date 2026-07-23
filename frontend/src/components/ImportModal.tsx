@@ -120,7 +120,7 @@ export default function ImportModal({ open, onClose, onImported }: Props) {
             <div className="py-4 text-center">
               <CheckCircle2 className="mx-auto mb-3 text-success-500" size={34} />
               <p className="text-sm font-semibold text-navy-900">Importação concluída</p>
-              <div className="mt-4 grid grid-cols-3 gap-2 text-left">
+<div className="mt-4 grid grid-cols-3 gap-2 text-left">
                 <div className="rounded-lg bg-surface-muted p-3">
                   <p className="text-xs text-navy-500">Linhas lidas</p>
                   <p className="text-lg font-semibold text-navy-900">{result.totalLinhasLidas}</p>
@@ -132,6 +132,18 @@ export default function ImportModal({ open, onClose, onImported }: Props) {
                 <div className="rounded-lg bg-surface-muted p-3">
                   <p className="text-xs text-navy-500">Ignoradas (OK)</p>
                   <p className="text-lg font-semibold text-navy-900">{result.totalIgnoradasOK}</p>
+                </div>
+                <div className="rounded-lg bg-success-50 p-3">
+                  <p className="text-xs text-success-700">Novos</p>
+                  <p className="text-lg font-semibold text-success-800">{result.registrosNovos}</p>
+                </div>
+                <div className="rounded-lg bg-violet-400/10 p-3">
+                  <p className="text-xs text-violet-600">Atualizados</p>
+                  <p className="text-lg font-semibold text-violet-700">{result.registrosAtualizados}</p>
+                </div>
+                <div className="rounded-lg bg-surface-muted p-3">
+                  <p className="text-xs text-navy-500">Total no banco</p>
+                  <p className="text-lg font-semibold text-navy-900">{result.totalAtualNoBanco}</p>
                 </div>
               </div>
               <button
