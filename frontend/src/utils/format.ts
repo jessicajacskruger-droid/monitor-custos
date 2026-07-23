@@ -7,8 +7,9 @@ export function formatCurrencyPrecise(value: number) {
 }
 
 export function formatPercent(value: number) {
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
+  const percentual = value * 100;
+  const sign = percentual > 0 ? "+" : "";
+  return `${sign}${percentual.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
 }
 
 export function formatNumber(value: number) {
