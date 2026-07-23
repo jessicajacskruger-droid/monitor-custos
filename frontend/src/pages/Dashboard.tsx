@@ -56,7 +56,7 @@ export default function Dashboard() {
             value={kpis ? String(kpis.totalMateriaisComVariacao) : "…"}
             icon={Package}
             tone="brand"
-            info="Quantidade de materiais cuja classificação (coluna 'Análise da Variação MM %' do Excel) é diferente de 'OK', dentro dos filtros ativos."
+            info="Quantidade de materiais cuja classificação é diferente de 'OK', dentro dos filtros ativos. Ou seja, materiais com variação de custo."
           />
           <KpiCard
             label="Impacto financeiro total"
