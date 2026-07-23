@@ -118,16 +118,36 @@ router.get("/ranking-variacao", async (req, res) => {
   res.json(rows);
 });
 
-// GET /api/dashboard/fornecedores — fornecedores com maior impacto financeiro somado
+// GET /api/dashboard/fornecedores — fornecedores com maior impacto financeiro
+// Sem "tipo": ranking por impacto absoluto somado (comportamento antigo).
+// tipo=aumento: só fornecedores com impacto líquido positivo, do maior aumento para o menor.
+// tipo=reducao: só fornecedores com impacto líquido negativo, da maior economia para a menor.
 router.get("/fornecedores", async (req, res) => {
   const where = buildWhere(req.query as VariationQuery);
   const limit = Math.min(50, Number(req.query.limit) || 10);
+  const tipo = req.query.tipo as string | undefined;
+
+  const having =
+    tipo === "aumento"
+      ? { impactoMM: { _sum: { gt: 0 } } }
+      : tipo === "reducao"
+      ? { impactoMM: { _sum: { lt: 0 } } }
+      : undefined;
+
+  const orderBy =
+    tipo === "aumento"
+      ? { _sum: { impactoMM: "desc" as const } }
+      : tipo === "reducao"
+      ? { _sum: { impactoMM: "asc" as const } }
+      : { _sum: { impactoMMAbs: "desc" as const } };
+
   const grupos = await prisma.costVariation.groupBy({
     by: ["fornecedor"],
     where,
     _sum: { impactoMM: true, impactoMMAbs: true },
     _count: { _all: true },
-    orderBy: { _sum: { impactoMMAbs: "desc" } },
+    having,
+    orderBy,
     take: limit,
   });
   res.json(
