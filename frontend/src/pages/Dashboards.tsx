@@ -7,6 +7,7 @@ import {
 import PageHeader from "../components/PageHeader";
 import GlobalFilterBar from "../components/GlobalFilterBar";
 import FilterBar from "../components/FilterBar";
+import InfoTooltip from "../components/InfoTooltip";
 import { useGlobalFilters } from "../context/GlobalFiltersContext";
 import {
   getDistribuicao, getEvolucaoMensal, getFornecedores, getPareto, getRankingImpacto,
@@ -17,10 +18,13 @@ import { formatCurrency, formatCurrencyPrecise, formatPercent } from "../utils/f
 
 const PALETTE = ["#1E4B8F", "#6C4FD1", "#4C82D0", "#8B72E8", "#173A70", "#B3CBEE"];
 
-function ChartCard({ title, children }: { title: string; children: ReactNode }) {
+function ChartCard({ title, info, children }: { title: string; info?: string; children: ReactNode }) {
   return (
     <div className="rounded-2xl bg-white p-5 shadow-card">
-      <p className="mb-4 text-sm font-semibold text-navy-800">{title}</p>
+      <p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
+        {title}
+        {info && <InfoTooltip text={info} />}
+      </p>
       {children}
     </div>
   );
@@ -74,7 +78,10 @@ useEffect(() => {
         <FilterBar filters={filters} onChange={setFilters} />
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <ChartCard title="Evolução mensal das variações (impacto absoluto)">
+          <ChartCard
+  title="Evolução mensal das variações (impacto absoluto)"
+  info="Barras: soma do Impacto MM $ absoluto por mês/ano. Linha: variação percentual média do mesmo período."
+>
             <ResponsiveContainer width="100%" height={260}>
               <ComposedChart data={evolucao}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EEF1F6" />
@@ -88,7 +95,10 @@ useEffect(() => {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Distribuição por classificação">
+          <ChartCard
+  title="Distribuição por classificação"
+  info="Quantidade de materiais em cada classificação (Redução crítica, Aumento crítico, Redução relevante, Aumento relevante, Crítico financeiro), definida pela coluna 'Análise da Variação MM %' do Excel."
+>
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
                 <Pie
@@ -118,7 +128,10 @@ useEffect(() => {
             </div>
           </ChartCard>
 
-          <ChartCard title="Ranking dos materiais (impacto financeiro)">
+          <ChartCard
+  title="Ranking dos materiais (impacto financeiro)"
+  info="Os 8 materiais com maior Impacto MM $ em valor absoluto, dentro dos filtros ativos."
+>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={rankingMateriais} layout="vertical" margin={{ left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EEF1F6" horizontal={false} />
@@ -130,7 +143,10 @@ useEffect(() => {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Ranking dos fornecedores (impacto financeiro)">
+          <ChartCard
+  title="Ranking dos fornecedores (impacto financeiro)"
+  info="Os 8 fornecedores com maior soma de Impacto MM $ absoluto entre seus materiais, dentro dos filtros ativos."
+>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={rankingFornecedores} layout="vertical" margin={{ left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EEF1F6" horizontal={false} />
@@ -142,7 +158,10 @@ useEffect(() => {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Pareto dos maiores impactos (80/20)">
+          <ChartCard
+  title="Pareto dos maiores impactos (80/20)"
+  info="Os 15 materiais de maior impacto absoluto, ordenados do maior para o menor, com a linha vermelha mostrando o percentual acumulado do impacto total — ajuda a ver quantos materiais concentram a maior parte do problema."
+>
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={pareto}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EEF1F6" />
@@ -156,7 +175,10 @@ useEffect(() => {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Comparação: Unit. Entrada x Médio Móvel">
+          <ChartCard
+  title="Comparação: Unit. Entrada x Médio Móvel"
+  info="Cada bolha é um material: eixo X é o preço unitário de entrada, eixo Y é o médio móvel histórico, e o tamanho da bolha é o impacto financeiro absoluto. Mostra os 150 materiais de maior impacto."
+>
             <ResponsiveContainer width="100%" height={280}>
               <ScatterChart>
                 <CartesianGrid strokeDasharray="3 3" stroke="#EEF1F6" />
@@ -175,7 +197,10 @@ useEffect(() => {
             </p>
           </ChartCard>
 
-          <ChartCard title="Top 10 maiores impactos financeiros">
+          <ChartCard
+  title="Top 10 maiores impactos financeiros"
+  info="Os 10 materiais com maior Impacto MM $ absoluto entre os filtrados."
+>
             <div className="space-y-1.5">
               {top10Impacto.map((r, i) => (
                 <div key={r.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 odd:bg-surface">
@@ -190,7 +215,10 @@ useEffect(() => {
             </div>
           </ChartCard>
 
-          <ChartCard title="Top 10 maiores variações percentuais">
+          <ChartCard
+  title="Top 10 maiores variações percentuais"
+  info="Os 10 materiais com maior Variação MM % em valor absoluto (independente do dado ser aumento ou redução) entre os filtrados."
+>
             <div className="space-y-1.5">
               {top10Variacao.map((r, i) => (
                 <div key={r.id} className="flex items-center justify-between rounded-lg px-2 py-1.5 odd:bg-surface">
