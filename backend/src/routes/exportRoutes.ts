@@ -32,11 +32,11 @@ function toPlainRow(r: Awaited<ReturnType<typeof fetchRows>>[number]) {
     Fornecedor: r.fornecedor,
     "Ano/Mês": `${r.mes}/${r.anoDM}`,
     "Data Lançamento": r.dataLancamento.toISOString().slice(0, 10),
-    "Unit. Entrada $": r.unitEntrada,
-    "Médio Móvel $": r.medioMovel,
-    "Variação MM $": r.variacaoMMValor,
-    "Variação MM %": r.variacaoMMPercentual,
-    "Impacto MM $": r.impactoMM,
+"Preço de Entrada (R$)": r.unitEntrada,
+    "Médio Móvel (R$)": r.medioMovel,
+    "Diferença (R$)": r.variacaoMMValor,
+    "Diferença (%)": r.variacaoMMPercentual,
+    "Impacto Financeiro (R$)": r.impactoMM,
     Classificação: CLASSIFICACAO_LABEL[r.classificacao] || r.classificacao,
     "Tipo de Justificativa": r.justification?.justificationType?.nome || "",
     "Justificativa (texto livre)": r.justification?.textoLivre || "",
@@ -105,7 +105,7 @@ router.get("/pdf", async (req, res) => {
     );
   doc.moveDown(0.8);
 
-  const headers = ["Material", "Descrição", "Fornecedor", "Período", "Var. %", "Impacto $", "Classificação", "Justificativa"];
+const headers = ["Material", "Descrição", "Fornecedor", "Período", "Diferença (%)", "Impacto Financeiro (R$)", "Classificação", "Justificativa"];
   const colWidths = [60, 130, 100, 55, 50, 70, 90, 200];
 
   function drawHeader(y: number) {
