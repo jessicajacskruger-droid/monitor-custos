@@ -147,7 +147,7 @@ export default function Dashboard() {
           <div className="rounded-2xl bg-white p-5 shadow-card">
             <p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
               Top materiais por impacto financeiro
-              <InfoTooltip text="Os 6 materiais com maior Impacto MM $ em valor absoluto (aumentos e reduções mais significativos), dentro dos filtros ativos." />
+              <InfoTooltip text="Os 6 materiais com maior impacto financeiro em módulo (aumento ou redução, o que for maior). O valor mostrado na barra é o real: negativo para reduções, positivo para aumentos." />
             </p>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={rankingImpacto} layout="vertical" margin={{ left: 10 }}>
