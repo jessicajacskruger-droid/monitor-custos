@@ -99,9 +99,13 @@ export async function getRankingVariacao(filters: VariationFilters, limit = 10) 
   return data;
 }
 
-export async function getFornecedores(filters: VariationFilters, limit = 10) {
+export async function getFornecedores(
+  filters: VariationFilters,
+  limit = 10,
+  tipo?: "aumento" | "reducao"
+) {
   const { data } = await api.get("/dashboard/fornecedores", {
-    params: { ...cleanParams(filters), limit },
+    params: { ...cleanParams(filters), limit, ...(tipo ? { tipo } : {}) },
   });
   return data;
 }
