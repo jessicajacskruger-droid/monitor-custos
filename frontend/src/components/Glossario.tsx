@@ -3,14 +3,9 @@ import { useState } from "react";
 
 const TERMOS = [
   {
-    termo: "Preço de Entrada",
+    termo: "Classificação",
     explicacao:
-      "O preço unitário daquela entrada/compra específica. Cada linha da tabela representa uma entrada diferente, então o mesmo material pode aparecer várias vezes com preços de entrada diferentes.",
-  },
-  {
-    termo: "Médio Móvel",
-    explicacao:
-      "O preço de referência calculado pelo SAP para aquele material naquele período. É um valor fixo por material/mês, usado como base de comparação — não muda entrada a entrada.",
+      "Categoria atribuída a cada material com base na Diferença (%): Redução crítica, Aumento crítico, Redução relevante, Aumento relevante ou Crítico financeiro. Materiais sem variação relevante (classificados como 'OK' na planilha) nem entram no sistema.",
   },
   {
     termo: "Diferença (R$) e Diferença (%)",
@@ -23,14 +18,19 @@ const TERMOS = [
       "A Diferença (R$) multiplicada pela quantidade de entrada. É o que realmente importa financeiramente: uma diferença de preço grande em pouca quantidade pode valer menos do que uma diferença pequena em grande quantidade.",
   },
   {
-    termo: "Classificação",
+    termo: "Médio Móvel",
     explicacao:
-      "Categoria atribuída a cada material com base na Diferença (%): Redução crítica, Aumento crítico, Redução relevante, Aumento relevante ou Crítico financeiro. Materiais sem variação relevante (classificados como 'OK' na planilha) nem entram no sistema.",
+      "O preço de referência calculado pelo SAP para aquele material naquele período. É um valor fixo por material/mês, usado como base de comparação — não muda entrada a entrada.",
+  },
+  {
+    termo: "Preço de Entrada",
+    explicacao:
+      "O preço unitário daquela entrada/compra específica. Cada linha da tabela representa uma entrada diferente, então o mesmo material pode aparecer várias vezes com preços de entrada diferentes.",
   },
   {
     termo: "Reincidência",
     explicacao:
-      "Quantidade de meses distintos em que aquele mesmo material aparece com variação relevante. Um número alto indica um problema recorrente de preço, não um caso isolado.",
+      "Quantidade de entradas (linhas) com variação relevante que aquele material teve ao todo, somando todos os períodos importados — não é a quantidade de meses distintos. Se o mesmo material tiver 3 entradas diferentes no mesmo mês, isso já conta como reincidência 3.",
   },
 ];
 
