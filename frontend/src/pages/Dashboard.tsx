@@ -193,7 +193,7 @@ export default function Dashboard() {
           <div className="rounded-2xl bg-white p-5 shadow-card">
 <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-navy-800">
               <Repeat2 size={15} className="text-violet-500" /> Materiais com maior reincidência
-              <InfoTooltip text="Materiais que aparecem com variação relevante em mais meses distintos — indica um problema recorrente de preço, não pontual." />
+              <InfoTooltip text="Quantidade de entradas (linhas) com variação relevante que aquele material teve ao todo, somando todos os períodos importados. Um número alto indica um problema recorrente de preço." />
             </p>
             <div className="space-y-2">
               {reincidencia.map((r) => (
