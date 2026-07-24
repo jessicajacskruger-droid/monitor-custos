@@ -98,6 +98,58 @@ export interface ImportResult {
 }
 
 /**
+ * Recalcula a Média Histórica de Entrada para todos os materiais informados.
+ *
+ * A média, para cada linha, é a média do Unit Entrada $ de TODAS as entradas
+ * anteriores daquele material (de qualquer período), em ordem cronológica
+ * pela Data de Lançamento — com empate resolvido pela linha da planilha.
+ * A primeira entrada de um material (sem nenhuma anterior) fica com
+ * mediaHistoricaEntrada = null, sinalizando "Primeira entrada registrada".
+ *
+ * Precisa rodar depois de QUALQUER import que toque nesses materiais, pois
+ * uma entrada nova pode entrar no meio da linha do tempo e mudar a média
+ * de todas as entradas posteriores, não só da entrada nova.
+ */
+async function recalcularMediaHistorica(materiais: string[]) {
+  for (const material of materiais) {
+    const entradas = await prisma.costVariation.findMany({
+      where: { material },
+      orderBy: [{ dataLancamento: "asc" }, { linhaPlanilha: "asc" }, { id: "asc" }],
+      select: { id: true, unitEntrada: true },
+    });
+
+    let somaAnteriores = 0;
+    const updates = entradas.map((entrada, index) => {
+      const qtdAnteriores = index;
+      const mediaHistoricaEntrada = qtdAnteriores > 0 ? somaAnteriores / qtdAnteriores : null;
+      const desvioHistoricoPercentual =
+        mediaHistoricaEntrada && mediaHistoricaEntrada !== 0
+          ? (entrada.unitEntrada - mediaHistoricaEntrada) / mediaHistoricaEntrada
+          : null;
+
+      somaAnteriores += entrada.unitEntrada;
+
+      return prisma.costVariation.update({
+        where: { id: entrada.id },
+        data: {
+          mediaHistoricaEntrada,
+          desvioHistoricoPercentual,
+          qtdEntradasAnteriores: qtdAnteriores,
+        },
+      });
+    });
+
+    // Lote por material — evita uma transação gigante com o banco inteiro de uma vez
+    const BATCH = 50;
+    for (let i = 0; i < updates.length; i += BATCH) {
+      await prisma.$transaction(updates.slice(i, i + BATCH));
+    }
+  }
+}
+
+
+
+/**
  * Importa a aba "Monitor" de um arquivo .xlsx.
  *
  * IMPORTANTE (leitura em streaming):
@@ -182,11 +234,12 @@ for await (const row of worksheetReader) {
         continue;
       }
 
-      const parsed: ParsedRow = {};
+const parsed: ParsedRow = {};
       row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
         const key = colIndexToKey[colNumber];
         if (key) parsed[key] = cell.value;
       });
+      parsed.linhaPlanilha = row.number;
 
       if (!parsed.material) continue; // linha vazia/lixo
       totalLinhasLidas++;
@@ -248,6 +301,7 @@ for await (const row of worksheetReader) {
         magnitude: cellToNumber(parsed.magnitude),
         mediaDinamica: cellToString(parsed.mediaDinamica) || null,
         desvioEntradasReal: cellToNumber(parsed.desvioEntradasReal),
+        linhaPlanilha: parsed.linhaPlanilha as number,
         obs: cellToString(parsed.obs) || null,
       };
       
@@ -343,10 +397,17 @@ for await (const row of worksheetReader) {
     );
   }
 
+const materiaisAfetados = [...new Set(rowsToUpsert.map((r) => (r.create as any).material as string))];
+  console.log(`Recalculando média histórica para ${materiaisAfetados.length} material(is) afetado(s)...`);
+  await recalcularMediaHistorica(materiaisAfetados);
+  console.log("Recálculo da média histórica concluído");
+
   await prisma.importLog.update({
     where: { id: importLog.id },
     data: { duracaoMs: Date.now() - inicio },
   });
+
+  return {
 
 const totalAtualNoBanco = await prisma.costVariation.count();
 
