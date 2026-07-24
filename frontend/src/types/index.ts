@@ -55,6 +55,9 @@ export interface CostVariation {
   contaFornecedor: string | null;
   unitEntrada: number;
   medioMovel: number;
+  mediaHistoricaEntrada: number | null;
+  desvioHistoricoPercentual: number | null;
+  qtdEntradasAnteriores: number;
   variacaoMMValor: number;
   variacaoMMPercentual: number;
   impactoMM: number;
