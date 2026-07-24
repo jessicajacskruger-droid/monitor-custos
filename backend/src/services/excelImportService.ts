@@ -406,9 +406,7 @@ const materiaisAfetados = [...new Set(rowsToUpsert.map((r) => (r.create as any).
     where: { id: importLog.id },
     data: { duracaoMs: Date.now() - inicio },
   });
-
-  return {
-
+  
 const totalAtualNoBanco = await prisma.costVariation.count();
 
   return {
