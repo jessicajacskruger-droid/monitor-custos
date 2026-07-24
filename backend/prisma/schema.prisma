@@ -78,6 +78,10 @@ model CostVariation {
   magnitude            Float?
   mediaDinamica        String?
   desvioEntradasReal   Float?
+  linhaPlanilha        Int?
+  mediaHistoricaEntrada     Float?
+  desvioHistoricoPercentual Float?
+  qtdEntradasAnteriores     Int     @default(0)
   obs                  String?
 
   // Metadados de controle
