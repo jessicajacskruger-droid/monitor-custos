@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, Plus, History, Clock } from "lucide-react";
+import { X, Plus, History, Clock, FileSearch } from "lucide-react";
 import type { CostVariation, JustificationType } from "../types";
 import { CLASSIFICACAO_LABEL } from "../types";
 import {
@@ -8,7 +8,7 @@ import {
   listJustificationTypes,
   saveJustification,
 } from "../services/api";
-import { formatCurrencyPrecise, formatDate, formatPercent, formatPeriodo } from "../utils/format";
+import { formatCurrencyPrecise, formatDate, formatNumber, formatPercent, formatPeriodo } from "../utils/format";
 
 interface Props {
   variation: CostVariation | null;
@@ -25,7 +25,7 @@ export default function JustificationDrawer({ variation, onClose, onSaved }: Pro
   const [newTypeMode, setNewTypeMode] = useState(false);
   const [newTypeName, setNewTypeName] = useState("");
   const [historico, setHistorico] = useState<any[]>([]);
-  const [tab, setTab] = useState<"editar" | "historico">("editar");
+  const [tab, setTab] = useState<"editar" | "dados" | "historico">("editar");
 
   useEffect(() => {
     if (!variation) return;
@@ -102,7 +102,7 @@ async function handleSave() {
           </div>
         </div>
 
-        <div className="flex border-b border-surface-muted px-6">
+<div className="flex border-b border-surface-muted px-6">
           <button
             onClick={() => setTab("editar")}
             className={`border-b-2 px-3 py-3 text-sm font-medium ${
@@ -110,6 +110,15 @@ async function handleSave() {
             }`}
           >
             Justificativa
+          </button>
+          <button
+            onClick={() => setTab("dados")}
+            className={`flex items-center gap-1.5 border-b-2 px-3 py-3 text-sm font-medium ${
+              tab === "dados" ? "border-brand-600 text-brand-700" : "border-transparent text-navy-500"
+            }`}
+          >
+            <FileSearch size={14} />
+            Dados da entrada
           </button>
           <button
             onClick={() => setTab("historico")}
@@ -201,6 +210,95 @@ async function handleSave() {
             </div>
           )}
 
+     {tab === "dados" && (
+            <div className="space-y-5">
+              <section>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-500">Identificação</p>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                  <Campo label="Material" valor={variation.material} />
+                  <Campo label="Tipo de Material (TMat)" valor={variation.tipoMaterial || "—"} />
+                  <Campo label="Centro" valor={variation.centro} />
+                  <Campo label="Categoria Contábil" valor={variation.categoriaContabil || "—"} />
+                  <Campo label="Pedido (Doc. compra)" valor={variation.docCompra || "—"} />
+                  <Campo label="Item" valor={variation.item || "—"} />
+                  <Campo label="Referência" valor={variation.referencia || "—"} />
+                  <Campo label="Doc. ref." valor={variation.docRef || "—"} />
+                  <Campo label="Data de Lançamento" valor={formatDate(variation.dataLancamento)} />
+                  <Campo label="Período" valor={formatPeriodo(variation.mes, variation.anoDM)} />
+                </div>
+              </section>
+
+              <section>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-500">Fornecedor</p>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                  <Campo label="Fornecedor" valor={variation.fornecedor} />
+                  <Campo label="Conta do Fornecedor" valor={variation.contaFornecedor || "—"} />
+                  <Campo label="Chave do País" valor={variation.chaveDoPais || "—"} />
+                  <Campo label="Taxa de Câmbio" valor={variation.taxaCambio != null ? formatNumber(variation.taxaCambio) : "—"} />
+                </div>
+              </section>
+
+              <section>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-500">Quantidade e Valores</p>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                  <Campo label="Quantidade de Entrada" valor={formatNumber(variation.qtdEntrada)} />
+                  <Campo label="Unidade de Medida" valor={variation.unidadeMedida || "—"} />
+                  <Campo label="Necessário Conversão?" valor={variation.necessarioConv ? "Sim" : "Não"} />
+                  <Campo label="Montante em MI" valor={formatCurrencyPrecise(variation.montanteMI)} />
+                  <Campo label="Preço de Entrada" valor={formatCurrencyPrecise(variation.unitEntrada)} />
+                  <Campo label="Médio Móvel" valor={formatCurrencyPrecise(variation.medioMovel)} />
+                </div>
+              </section>
+
+              <section>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-500">
+                  Análise vs. Médio Móvel (SAP)
+                </p>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                  <Campo label="Diferença (R$)" valor={formatCurrencyPrecise(variation.variacaoMMValor)} />
+                  <Campo label="Diferença (%)" valor={formatPercent(variation.variacaoMMPercentual)} />
+                  <Campo label="Impacto Financeiro" valor={formatCurrencyPrecise(variation.impactoMM)} />
+                  <Campo label="Magnitude" valor={variation.magnitude != null ? formatPercent(variation.magnitude) : "—"} />
+                </div>
+              </section>
+
+              <section>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-500">
+                  Análise Histórica (entradas anteriores deste material)
+                </p>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+                  <Campo
+                    label="Qtd. de Entradas Anteriores"
+                    valor={formatNumber(variation.qtdEntradasAnteriores)}
+                  />
+                  <Campo
+                    label="Média Histórica de Entrada"
+                    valor={
+                      variation.mediaHistoricaEntrada != null
+                        ? formatCurrencyPrecise(variation.mediaHistoricaEntrada)
+                        : "Primeira entrada registrada"
+                    }
+                  />
+                  <Campo
+                    label="Desvio Histórico (%)"
+                    valor={
+                      variation.desvioHistoricoPercentual != null
+                        ? formatPercent(variation.desvioHistoricoPercentual)
+                        : "—"
+                    }
+                  />
+                </div>
+              </section>
+
+              {variation.obs && (
+                <section>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-500">Observação (planilha)</p>
+                  <p className="rounded-lg bg-surface px-3 py-2 text-sm text-navy-700">{variation.obs}</p>
+                </section>
+              )}
+            </div>
+          )}
+
           {tab === "historico" && (
             <div className="space-y-3">
               {historico.length === 0 && (
@@ -223,7 +321,6 @@ async function handleSave() {
             </div>
           )}
         </div>
-
         {tab === "editar" && (
           <div className="border-t border-surface-muted px-6 py-4">
             <button
@@ -236,6 +333,14 @@ async function handleSave() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+function Campo({ label, valor }: { label: string; valor: string }) {
+  return (
+    <div>
+      <p className="text-[11px] text-navy-500">{label}</p>
+      <p className="font-medium text-navy-800">{valor}</p>
     </div>
   );
 }
