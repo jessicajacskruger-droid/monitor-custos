@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { importMonitorExcel } from "../services/excelImportService";
+import { importMonitorExcel, recalcularMediaHistorica } from "../services/excelImportService";
 import { prisma } from "../prisma";
 
 const router = Router();
@@ -71,6 +71,31 @@ router.delete("/reset", async (_req, res) => {
     console.error("Erro ao resetar dados:", error);
     return res.status(500).json({
       error: error instanceof Error ? error.message : "Erro ao apagar os dados.",
+    });
+  }
+});
+
+// POST /api/import/recalcular-historico — recalcula a Média Histórica de
+// Entrada para TODOS os materiais já existentes no banco. Útil para rodar
+// uma vez após adicionar esse recurso, já que o cálculo normal só roda
+// durante um import novo.
+router.post("/recalcular-historico", async (_req, res) => {
+  try {
+    const materiais = await prisma.costVariation.findMany({
+      select: { material: true },
+      distinct: ["material"],
+    });
+    const listaMateriais = materiais.map((m) => m.material);
+
+    console.log(`Recalculando média histórica para ${listaMateriais.length} material(is)...`);
+    await recalcularMediaHistorica(listaMateriais);
+    console.log("Recálculo manual concluído");
+
+    return res.status(200).json({ ok: true, materiaisProcessados: listaMateriais.length });
+  } catch (error) {
+    console.error("Erro ao recalcular histórico:", error);
+    return res.status(500).json({
+      error: error instanceof Error ? error.message : "Erro ao recalcular histórico.",
     });
   }
 });
