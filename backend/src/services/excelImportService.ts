@@ -110,7 +110,7 @@ export interface ImportResult {
  * uma entrada nova pode entrar no meio da linha do tempo e mudar a média
  * de todas as entradas posteriores, não só da entrada nova.
  */
-async function recalcularMediaHistorica(materiais: string[]) {
+export async function recalcularMediaHistorica(materiais: string[]) {
   for (const material of materiais) {
     const entradas = await prisma.costVariation.findMany({
       where: { material },
