@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../prisma";
 import { buildWhere, VariationQuery } from "../utils/filters";
+import { calcularPareto } from "../utils/pareto";
 
 const router = Router();
 
@@ -19,11 +20,30 @@ router.get("/", async (req, res) => {
     pageSize?: string;
     sortBy?: string;
     sortDir?: string;
+    somentePareto?: string;
   };
 
   const page = Math.max(1, Number(q.page) || 1);
   const pageSize = Math.min(500, Math.max(1, Number(q.pageSize) || 50));
   const where = buildWhere(q);
+
+  // O Pareto é calculado dentro do MESMO conjunto definido pelos filtros
+  // ativos — se houver filtro de mês, o pareto é só daquele mês; sem
+  // filtro de mês, é feito com a base inteira já filtrada pelos outros
+  // critérios (centro, TMat, categoria contábil etc.).
+  const todasParaPareto = await prisma.costVariation.findMany({
+    where,
+    select: { id: true, impactoMMAbs: true },
+  });
+  const paretoMap = calcularPareto(todasParaPareto);
+
+  let whereFinal = where;
+  if (q.somentePareto === "true") {
+    const idsPrioritarios = [...paretoMap.entries()]
+      .filter(([, info]) => info.prioridadePareto)
+      .map(([id]) => id);
+    whereFinal = { AND: [where, { id: { in: idsPrioritarios } }] };
+  }
 
   const sortField = SORT_FIELDS[q.sortBy || "impacto"] || "impactoMMAbs";
   const sortDir = q.sortDir === "asc" ? "asc" : "desc";
@@ -34,9 +54,9 @@ router.get("/", async (req, res) => {
   const orderBy = [{ [sortField]: sortDir }];
 
   const [total, rows] = await Promise.all([
-    prisma.costVariation.count({ where }),
+    prisma.costVariation.count({ where: whereFinal }),
     prisma.costVariation.findMany({
-      where,
+      where: whereFinal,
       orderBy: orderBy as any,
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -58,7 +78,11 @@ router.get("/", async (req, res) => {
     pageSize,
     total,
     totalPages: Math.ceil(total / pageSize),
-    data: rows.map((r) => ({ ...r, reincidencia: reincidenciaMap.get(r.material) || 1 })),
+    data: rows.map((r) => ({
+      ...r,
+      reincidencia: reincidenciaMap.get(r.material) || 1,
+      ...paretoMap.get(r.id),
+    })),
   });
 });
 
