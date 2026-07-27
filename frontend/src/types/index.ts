@@ -78,6 +78,8 @@ export interface CostVariation {
   obs: string | null;
   justification: Justification | null;
   reincidencia?: number;
+  prioridadePareto?: boolean;
+  percentualAcumuladoPareto?: number;
 }
 
 export interface PaginatedResponse<T> {
@@ -98,6 +100,9 @@ export interface KpiData {
   percentualJustificado: number;
   maiorAumento: { material: string; descricaoMaterial: string; variacaoMMPercentual: number; impactoMM: number } | null;
   maiorReducao: { material: string; descricaoMaterial: string; variacaoMMPercentual: number; impactoMM: number } | null;
+  materiaisPareto: number;
+  justificadosPareto: number;
+  percentualJustificadoPareto: number;
 }
 
 export interface VariationFilters {
@@ -120,6 +125,7 @@ export interface VariationFilters {
   pageSize?: number;
   sortBy?: "impacto" | "variacao" | "data";
   sortDir?: "asc" | "desc";
+  somentePareto?: boolean;
 }
 
 export interface ImportLog {
