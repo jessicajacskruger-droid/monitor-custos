@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../prisma";
 import { buildWhere, VariationQuery } from "../utils/filters";
+import { calcularPareto } from "../utils/pareto";
 
 const router = Router();
 // GET /api/dashboard/filtros-opcoes — valores distintos de TMat e Centro, para popular os selects de filtro
@@ -42,6 +43,7 @@ router.get("/kpis", async (req, res) => {
     comJustificativa,
     maiorAumento,
     maiorReducao,
+    todasParaPareto,
   ] = await Promise.all([
     prisma.costVariation.count({ where }),
     prisma.costVariation.aggregate({
@@ -61,7 +63,21 @@ router.get("/kpis", async (req, res) => {
       orderBy: { variacaoMMPercentual: "asc" },
       select: { material: true, descricaoMaterial: true, variacaoMMPercentual: true, impactoMM: true },
     }),
+    prisma.costVariation.findMany({ where, select: { id: true, impactoMMAbs: true } }),
   ]);
+
+  const paretoMap = calcularPareto(todasParaPareto);
+  const idsPrioritarios = [...paretoMap.entries()]
+    .filter(([, info]) => info.prioridadePareto)
+    .map(([id]) => id);
+
+  const materiaisPareto = idsPrioritarios.length;
+  const justificadosPareto =
+    materiaisPareto > 0
+      ? await prisma.costVariation.count({
+          where: { AND: [{ id: { in: idsPrioritarios } }, { justification: { isNot: null } }] },
+        })
+      : 0;
 
   res.json({
     totalMateriaisComVariacao: totalMateriais,
@@ -73,6 +89,9 @@ router.get("/kpis", async (req, res) => {
     percentualJustificado: totalMateriais > 0 ? (comJustificativa / totalMateriais) * 100 : 0,
     maiorAumento,
     maiorReducao,
+    materiaisPareto,
+    justificadosPareto,
+    percentualJustificadoPareto: materiaisPareto > 0 ? (justificadosPareto / materiaisPareto) * 100 : 0,
   });
 });
 
