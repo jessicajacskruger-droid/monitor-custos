@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  AlertCircle, CheckCircle2, DollarSign, Package, TrendingDown, TrendingUp, Repeat2, Building2,
+import {
+  AlertCircle, CheckCircle2, DollarSign, Package, TrendingDown, TrendingUp, Repeat2, Building2, Target,
 } from "lucide-react";
 import {
   Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -53,7 +54,7 @@ async function load() {
 
       <div className="space-y-6 p-8">
         <GlobalFilterBar />
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
 <KpiCard
             label="Materiais com variação"
             value={kpis ? String(kpis.totalMateriaisComVariacao) : "…"}
@@ -83,6 +84,16 @@ async function load() {
             subtitle={kpis ? `${kpis.materiaisComJustificativa} de ${kpis.totalMateriaisComVariacao}` : undefined}
             info="Percentual de materiais que já têm uma justificativa registrada (tipo ou texto livre) sobre o total de materiais com variação relevante."
           />
+
+          <KpiCard
+            label="% justificado (Pareto 80/20)"
+            value={kpis ? `${kpis.percentualJustificadoPareto.toFixed(0)}%` : "…"}
+            icon={Target}
+            tone="violet"
+            subtitle={kpis ? `${kpis.justificadosPareto} de ${kpis.materiaisPareto}` : undefined}
+            info="Percentual de justificativas já feitas apenas entre os materiais 'prioridade Pareto' — os que, somados do maior impacto pro menor, respondem por 80% do impacto financeiro total do conjunto filtrado atual."
+          />
+          
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
