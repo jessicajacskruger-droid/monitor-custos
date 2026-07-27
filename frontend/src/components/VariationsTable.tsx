@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Repeat2 } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Repeat2, Target } from "lucide-react";
 import type { CostVariation, VariationFilters } from "../types";
 import { CLASSIFICACAO_COLOR, CLASSIFICACAO_LABEL } from "../types";
 import { formatCurrencyPrecise, formatPercent, formatPeriodo } from "../utils/format";
@@ -149,14 +149,25 @@ Maior diferença % <SortIcon field="variacao" />
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-3">
-                      <span
-                        className={`inline-block rounded-full px-2 py-1 text-[11px] font-medium ${
-                          CLASSIFICACAO_COLOR[row.classificacao]
-                        }`}
-                      >
-                        {CLASSIFICACAO_LABEL[row.classificacao]}
-                      </span>
+<td className="px-3 py-3">
+                      <div className="flex flex-wrap items-center gap-1">
+                        <span
+                          className={`inline-block rounded-full px-2 py-1 text-[11px] font-medium ${
+                            CLASSIFICACAO_COLOR[row.classificacao]
+                          }`}
+                        >
+                          {CLASSIFICACAO_LABEL[row.classificacao]}
+                        </span>
+                        {row.prioridadePareto && (
+                          <span
+                            title="Este material está entre os que somam 80% do impacto financeiro do conjunto filtrado atual"
+                            className="inline-flex items-center gap-0.5 rounded-full bg-violet-400/10 px-1.5 py-0.5 text-[10px] font-medium text-violet-600"
+                          >
+                            <Target size={10} />
+                            Pareto
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 py-3">
                       {row.justification ? (
