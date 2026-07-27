@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Target } from "lucide-react";
 import type { VariationFilters } from "../types";
 
 interface Props {
@@ -51,6 +51,18 @@ export default function FilterBar({ filters, onChange }: Props) {
             </option>
           ))}
         </select>
+
+<button
+          onClick={() => set("somentePareto", (filters.somentePareto ? undefined : true) as any)}
+          className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition ${
+            filters.somentePareto
+              ? "border-violet-400 bg-violet-400/10 text-violet-700"
+              : "border-surface-muted text-navy-700 hover:bg-surface"
+          }`}
+        >
+          <Target size={15} />
+          Somente Pareto (80/20)
+        </button>
 
         <button
           onClick={() => setAdvancedOpen((v) => !v)}
