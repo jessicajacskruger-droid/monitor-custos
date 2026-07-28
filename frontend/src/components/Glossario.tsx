@@ -23,6 +23,11 @@ const TERMOS = [
       "O preço de referência calculado pelo SAP para aquele material naquele período. É um valor fixo por material/mês, usado como base de comparação — não muda entrada a entrada.",
   },
   {
+    termo: "Pareto (80/20)",
+    explicacao:
+      "Ordena todos os materiais do maior impacto financeiro (em módulo) para o menor, e marca como 'Prioridade Pareto' os que, somados nessa ordem, respondem pelos primeiros 80% do impacto total do conjunto filtrado no momento. É o princípio de que uma pequena parte dos materiais costuma concentrar a maior parte do resultado financeiro. O cálculo é sempre feito dentro dos filtros ativos: se você filtrar por um mês, o Pareto é daquele mês; sem esse filtro, é da base inteira filtrada.",
+  },
+  {
     termo: "Preço de Entrada",
     explicacao:
       "O preço unitário daquela entrada/compra específica. Cada linha da tabela representa uma entrada diferente, então o mesmo material pode aparecer várias vezes com preços de entrada diferentes.",
